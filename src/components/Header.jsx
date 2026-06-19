@@ -1,5 +1,5 @@
 
-export default function Header({ activeTab, setActiveTab, favoritesCount, compareCount, teamsCount }) {
+export default function Header({ activeTab, setActiveTab, favoritesCount, compareCount, teamsCount, journalCount }) {
     return (
         <header className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-neutral-200/50 px-6 py-4">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -26,22 +26,20 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
                 <nav className="flex items-center gap-1 bg-neutral-100/80 p-1 rounded-xl border border-neutral-200/50 overflow-x-auto max-w-full scrollbar-none">
                     <button
                         onClick={() => setActiveTab('explore')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                            activeTab === 'explore'
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'explore'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
                                 : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
-                        }`}
+                            }`}
                     >
                         Jelajah
                     </button>
 
                     <button
                         onClick={() => setActiveTab('favorites')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                            activeTab === 'favorites'
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'favorites'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
                                 : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
-                        }`}
+                            }`}
                     >
                         Favorit
                         {favoritesCount > 0 && (
@@ -53,11 +51,10 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('compare')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                            activeTab === 'compare'
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'compare'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
                                 : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
-                        }`}
+                            }`}
                     >
                         Bandingkan
                         {compareCount > 0 && (
@@ -69,11 +66,10 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('teams')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                            activeTab === 'teams'
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'teams'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
                                 : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
-                        }`}
+                            }`}
                     >
                         Tim Tempur
                         {teamsCount > 0 && (
@@ -84,12 +80,26 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
                     </button>
 
                     <button
-                        onClick={() => setActiveTab('game')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                            activeTab === 'game'
+                        onClick={() => setActiveTab('journal')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'journal'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
                                 : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
-                        }`}
+                            }`}
+                    >
+                        Jurnal
+                        {journalCount > 0 && (
+                            <span className="bg-neutral-800 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold font-mono leading-none">
+                                {journalCount}
+                            </span>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('game')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'game'
+                                ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
+                                : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
+                            }`}
                     >
                         Kuis Bayangan
                     </button>

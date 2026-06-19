@@ -1,9 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TYPE_DETAILS } from '../constants/pokemonData';
 import { calculateTypeWeakness } from '../utils/statCalculator';
 
-export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon, cachedDetails }) {
+export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon, cachedDetails, journalLogs = [], onCreateJournal, onUpdateJournal, onDeleteJournal }) {
     const weaknesses = calculateTypeWeakness(pokemon.types);
+
+    const existingLog = journalLogs.find(log => log.pokemonId === pokemon.id);
+    const [isEditing, setIsEditing] = useState(false);
+    const [form, setForm] = useState(() => {
+        if (existingLog) {
+            return {
+                date: existingLog.date || '',
+                location: existingLog.location || '',
+                level: existingLog.level || 5,
+                nature: existingLog.nature || 'Normal',
+                notes: existingLog.notes || ''
+            };
+        }
+        return {
+            date: new Date().toISOString().split('T')[0],
+            location: '',
+            level: 5,
+            nature: 'Normal',
+            notes: ''
+        };
+    });
+
+    const natures = [
+        'Normal', 'Adamant', 'Bashful', 'Bold', 'Brave', 'Calm', 'Careful', 'Docile', 
+        'Gentle', 'Hardy', 'Hasty', 'Impish', 'Jolly', 'Lax', 'Lonely', 'Mild', 
+        'Modest', 'Naive', 'Naughty', 'Quiet', 'Quirky', 'Rash', 'Relaxed', 'Sassy', 'Serious', 'Timid'
+    ];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
@@ -144,6 +171,171 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                         </div>
                     </div>
                 )}
+
+                {/* Bawah: Jurnal Tangkapan Pelatih */}
+                <div className="space-y-4 border-t border-neutral-150/60 pt-6">
+                    <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0 flex items-center gap-2">
+                        <svg className="w-3.5 h-3.5 text-neutral-450" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                        </svg>
+                        Catatan Jurnal Pelatih
+                    </h3>
+
+                    {existingLog && !isEditing ? (
+                        <div className="bg-neutral-50/50 border border-neutral-200/50 rounded-2xl p-5 hover:shadow-sm transition-all space-y-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[9px] font-bold text-neutral-500">
+                                <div>
+                                    <span className="block text-[7px] text-neutral-400 uppercase">Tanggal Tangkapan</span>
+                                    <span className="text-neutral-700">{existingLog.date || 'Tidak Diketahui'}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[7px] text-neutral-400 uppercase">Lokasi Menangkap</span>
+                                    <span className="text-neutral-700 capitalize">{existingLog.location}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[7px] text-neutral-400 uppercase">Level</span>
+                                    <span className="text-neutral-700 font-mono">Lv. {existingLog.level}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[7px] text-neutral-400 uppercase">Nature</span>
+                                    <span className="text-neutral-700">{existingLog.nature || 'Normal'}</span>
+                                </div>
+                            </div>
+
+                            {existingLog.notes && (
+                                <div className="p-3 bg-white border border-neutral-150/40 rounded-xl text-neutral-500 text-[10px] leading-relaxed italic">
+                                    "{existingLog.notes}"
+                                </div>
+                            )}
+
+                            <div className="flex gap-2 justify-end">
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200/60 text-neutral-850 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border-0"
+                                >
+                                    Ubah Catatan
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        onDeleteJournal(existingLog.id);
+                                        setForm({
+                                            date: new Date().toISOString().split('T')[0],
+                                            location: '',
+                                            level: 5,
+                                            nature: 'Normal',
+                                            notes: ''
+                                        });
+                                        setIsEditing(false);
+                                    }}
+                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-650 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-red-250/20"
+                                >
+                                    Hapus Jurnal
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-neutral-50/40 border border-neutral-200/50 rounded-2xl p-5 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Tanggal Ditangkap</label>
+                                    <input
+                                        type="date"
+                                        value={form.date}
+                                        onChange={(e) => setForm({ ...form, date: e.target.value })}
+                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Lokasi Menangkap</label>
+                                    <input
+                                        type="text"
+                                        value={form.location}
+                                        onChange={(e) => setForm({ ...form, location: e.target.value })}
+                                        placeholder="cth: Rute 1"
+                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Level Saat Ini</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={form.level}
+                                        onChange={(e) => setForm({ ...form, level: parseInt(e.target.value, 10) || 5 })}
+                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Sifat (Nature)</label>
+                                    <select
+                                        value={form.nature}
+                                        onChange={(e) => setForm({ ...form, nature: e.target.value })}
+                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                    >
+                                        {natures.map(n => <option key={n} value={n}>{n}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Catatan Personal</label>
+                                <textarea
+                                    rows="2"
+                                    value={form.notes}
+                                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                                    placeholder="Masukkan cerita petualangan saat menangkap..."
+                                    className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 resize-none box-border"
+                                />
+                            </div>
+
+                            <div className="flex gap-2 justify-end">
+                                {existingLog && (
+                                    <button
+                                        onClick={() => {
+                                            setForm({
+                                                date: existingLog.date || '',
+                                                location: existingLog.location || '',
+                                                level: existingLog.level || 5,
+                                                nature: existingLog.nature || 'Normal',
+                                                notes: existingLog.notes || ''
+                                            });
+                                            setIsEditing(false);
+                                        }}
+                                        className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200/60 text-neutral-500 hover:text-neutral-850 text-[9px] font-bold rounded-lg cursor-pointer border-0 transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        if (!form.location.trim()) {
+                                            alert("Lokasi menangkap harus diisi!");
+                                            return;
+                                        }
+                                        if (existingLog) {
+                                            onUpdateJournal(existingLog.id, form);
+                                            setIsEditing(false);
+                                        } else {
+                                            onCreateJournal({
+                                                pokemonId: pokemon.id,
+                                                pokemonName: pokemon.name,
+                                                pokemonSprite: pokemon.sprite,
+                                                ...form
+                                            });
+                                        }
+                                    }}
+                                    className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-[9px] font-bold rounded-lg cursor-pointer border-0 transition-colors"
+                                >
+                                    {existingLog ? 'Simpan Perubahan' : 'Tambah Catatan'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
             </div>
         </div>

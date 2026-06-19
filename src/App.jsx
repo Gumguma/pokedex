@@ -4,6 +4,7 @@ import PokemonCard from './components/PokemonCard';
 import PokemonModal from './components/PokemonModal';
 import TeamManager from './components/TeamManager';
 import QuizGame from './components/QuizGame';
+import JournalTimeline from './components/JournalTimeline';
 
 import { GENERATIONS, TYPE_DETAILS } from './constants/pokemonData';
 import { playPokemonCry } from './utils/audioHelper';
@@ -16,6 +17,11 @@ export default function App() {
     const saved = localStorage.getItem('pokedex_favs');
     return saved ? JSON.parse(saved) : [];
   });
+  const [journalLogs, setJournalLogs] = useState(() => {
+    const saved = localStorage.getItem('pokedex_journal');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [toastMessage, setToastMessage] = useState(null);
 
   // CRUD Team State
   const [teams, setTeams] = useState(() => {
@@ -62,6 +68,23 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('pokedex_teams', JSON.stringify(teams));
   }, [teams]);
+
+  useEffect(() => {
+    localStorage.setItem('pokedex_journal', JSON.stringify(journalLogs));
+  }, [journalLogs]);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  const showToast = useCallback((msg) => {
+    setToastMessage(msg);
+  }, []);
 
   // Fetching Pokemons
   const fetchPokemonBatch = useCallback(async (reset = false) => {
@@ -298,60 +321,124 @@ export default function App() {
       members: []
     };
     setTeams([...teams, newTeam]);
+    showToast(`Tim "${name}" berhasil dibuat.`);
   };
 
   const handleDeleteTeam = (id) => {
+    const team = teams.find(t => t.id === id);
     setTeams(teams.filter(t => t.id !== id));
+    if (team) {
+      showToast(`Tim "${team.name}" berhasil dihapus.`);
+    }
   };
 
   const handleRenameTeam = (id, newName) => {
     setTeams(teams.map(t => t.id === id ? { ...t, name: newName } : t));
+    showToast(`Nama tim diubah menjadi "${newName}".`);
   };
 
   const handleAddToTeam = (teamId, pokemon) => {
+    let added = false;
+    let targetTeamName = '';
+    let errorMsg = '';
+    
     setTeams(teams.map(t => {
       if (t.id === teamId) {
         if (t.members.length >= 6) {
-          setApiError("Satu tim maksimal berisi 6 Pokémon.");
+          errorMsg = "Satu tim maksimal berisi 6 Pokémon.";
           return t;
         }
         if (t.members.some(m => m.id === pokemon.id)) {
-          setApiError("Pokémon ini sudah ada di dalam tim ini.");
+          errorMsg = "Pokémon ini sudah ada di dalam tim ini.";
           return t;
         }
+        added = true;
+        targetTeamName = t.name;
         return { ...t, members: [...t.members, pokemon] };
       }
       return t;
     }));
+
+    if (errorMsg) {
+      setApiError(errorMsg);
+    } else if (added) {
+      showToast(`${pokemon.name} ditambahkan ke ${targetTeamName}.`);
+    }
     setShowTeamSelector(false);
   };
 
   const handleRemoveFromTeam = (teamId, pokemonId) => {
+    let removedName = '';
+    let targetTeamName = '';
+    
     setTeams(teams.map(t => {
       if (t.id === teamId) {
+        const member = t.members.find(m => m.id === pokemonId);
+        if (member) {
+          removedName = member.name;
+          targetTeamName = t.name;
+        }
         return { ...t, members: t.members.filter(m => m.id !== pokemonId) };
       }
       return t;
     }));
+
+    if (removedName) {
+      showToast(`${removedName} dihapus dari ${targetTeamName}.`);
+    }
+  };
+
+  // CRUD Journal Handlers
+  const handleCreateJournal = (log) => {
+    const newLog = {
+      id: Date.now().toString(),
+      ...log
+    };
+    setJournalLogs([newLog, ...journalLogs]);
+    showToast(`Jurnal tangkapan untuk ${log.pokemonName} berhasil disimpan.`);
+  };
+
+  const handleUpdateJournal = (id, updatedLog) => {
+    setJournalLogs(journalLogs.map(log => 
+      log.id === id ? { ...log, ...updatedLog } : log
+    ));
+    showToast("Jurnal tangkapan berhasil diperbarui.");
+  };
+
+  const handleDeleteJournal = (id) => {
+    const log = journalLogs.find(l => l.id === id);
+    setJournalLogs(journalLogs.filter(log => log.id !== id));
+    if (log) {
+      showToast(`Jurnal tangkapan untuk ${log.pokemonName} berhasil dihapus.`);
+    } else {
+      showToast("Jurnal tangkapan berhasil dihapus.");
+    }
   };
 
   // Favorites & Compare
   const handleToggleFav = (id) => {
+    const p = pokemonList.find(x => x.id === id) || Object.values(cachedDetails).find(x => x.id === id);
+    const nameStr = p ? p.name : `Pokémon #${id}`;
     if (favorites.includes(id)) {
       setFavorites(favorites.filter(f => f !== id));
+      showToast(`${nameStr} dihapus dari Favorit.`);
     } else {
       setFavorites([...favorites, id]);
+      showToast(`${nameStr} ditambahkan ke Favorit.`);
     }
   };
 
   const handleToggleCompare = (poke) => {
     if (compareList.some(c => c.id === poke.id)) {
       setCompareList(compareList.filter(c => c.id !== poke.id));
+      showToast(`${poke.name} dihapus dari perbandingan.`);
     } else {
       if (compareList.length >= 2) {
         setCompareList([compareList[0], poke]);
+        showToast(`${poke.name} dimasukkan ke slot perbandingan kedua.`);
       } else {
         setCompareList([...compareList, poke]);
+        showToast(`${poke.name} ditambahkan ke perbandingan.`);
       }
     }
   };
@@ -396,6 +483,7 @@ export default function App() {
         favoritesCount={favorites.length}
         compareCount={compareList.length}
         teamsCount={teams.length}
+        journalCount={journalLogs.length}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -568,6 +656,15 @@ export default function App() {
           />
         )}
 
+        {/* TAB JURNAL */}
+        {activeTab === 'journal' && (
+          <JournalTimeline
+            journalLogs={journalLogs}
+            onUpdateJournal={handleUpdateJournal}
+            onDeleteJournal={handleDeleteJournal}
+          />
+        )}
+
       </main>
 
       {/* OVERLAY: Add to Team Select Modal */}
@@ -603,11 +700,27 @@ export default function App() {
       {/* MODAL DETAIL */}
       {selectedPokemon && (
         <PokemonModal
+          key={selectedPokemon.id}
           pokemon={selectedPokemon}
           onClose={() => setSelectedPokemon(null)}
           onOpenDifferentPokemon={loadFullPokemonDetails}
           cachedDetails={cachedDetails}
+          journalLogs={journalLogs}
+          onCreateJournal={handleCreateJournal}
+          onUpdateJournal={handleUpdateJournal}
+          onDeleteJournal={handleDeleteJournal}
         />
+      )}
+
+      {/* TOAST NOTIFIKASI */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-neutral-900 border border-neutral-950 text-white text-[11px] font-bold tracking-tight shadow-xl flex items-center gap-2.5 animate-slide-up box-border transition-all">
+          <svg className="w-3.5 h-3.5 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg>
+          <span className="capitalize">{toastMessage}</span>
+        </div>
       )}
 
     </div>
