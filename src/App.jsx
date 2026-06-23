@@ -5,8 +5,10 @@ import PokemonModal from './components/PokemonModal';
 import TeamManager from './components/TeamManager';
 import QuizGame from './components/QuizGame';
 import JournalTimeline from './components/JournalTimeline';
+import TypeBadge from './components/TypeBadge';
+import BattleSimulator from './components/BattleSimulator';
 
-import { GENERATIONS, TYPE_DETAILS } from './constants/pokemonData';
+import { GENERATIONS, TYPE_DETAILS, LEGENDARY_IDS, MYTHICAL_IDS } from './constants/pokemonData';
 import { playPokemonCry } from './utils/audioHelper';
 
 export default function App() {
@@ -37,6 +39,7 @@ export default function App() {
   const [selectedType, setSelectedType] = useState('all');
   const [selectedGen, setSelectedGen] = useState('all');
   const [sortBy, setSortBy] = useState('id_asc');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
@@ -91,12 +94,17 @@ export default function App() {
     setLoading(true);
     setApiError(null);
     try {
-      let currentLimit = 24;
-      let currentOffset = reset ? 0 : offset;
+      let currentLimit;
+      let currentOffset;
 
       if (selectedGen !== 'all') {
+        // Specific generation: load all at once
         currentLimit = GENERATIONS[selectedGen].limit;
         currentOffset = GENERATIONS[selectedGen].offset;
+      } else {
+        // 'Semua Gen': load 151 on first load, then 48 per batch
+        currentOffset = reset ? 0 : offset;
+        currentLimit = reset ? 151 : 48;
       }
 
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${currentLimit}&offset=${currentOffset}`);
@@ -119,6 +127,11 @@ export default function App() {
           height: pData.height,
           weight: pData.weight,
           abilities: pData.abilities.map(a => a.ability.name),
+          isLegendary: LEGENDARY_IDS.has(pData.id),
+          isMythical: MYTHICAL_IDS.has(pData.id),
+          moves: pData.moves && pData.moves.length > 0 
+            ? pData.moves.slice(0, 4).map(m => m.move.name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+            : ['Tackle', 'Growl', 'Pound', 'Scratch'],
         };
 
         setCachedDetails(prev => ({ ...prev, [p.name]: mapped }));
@@ -190,12 +203,20 @@ export default function App() {
         currentChain = currentChain.evolves_to[0];
       }
 
-      setSelectedPokemon({
+      const isLegendary = LEGENDARY_IDS.has(pokemon.id) || !!speciesData.is_legendary;
+      const isMythical = MYTHICAL_IDS.has(pokemon.id) || !!speciesData.is_mythical;
+
+      const updatedDetails = {
         ...pokemon,
         desc,
         category,
-        evolution
-      });
+        evolution,
+        isLegendary,
+        isMythical
+      };
+
+      setCachedDetails(prev => ({ ...prev, [pokemon.name]: updatedDetails }));
+      setSelectedPokemon(updatedDetails);
       playPokemonCry(pokemon.id, pokemon.types);
     } catch (err) {
       console.warn("Gagal memuat detail biografi spesies:", err);
@@ -231,6 +252,11 @@ export default function App() {
         height: pData.height,
         weight: pData.weight,
         abilities: pData.abilities.map(a => a.ability.name),
+        isLegendary: LEGENDARY_IDS.has(pData.id),
+        isMythical: MYTHICAL_IDS.has(pData.id),
+        moves: pData.moves && pData.moves.length > 0 
+          ? pData.moves.slice(0, 4).map(m => m.move.name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+          : ['Tackle', 'Growl', 'Pound', 'Scratch'],
       };
 
       setPokemonList(prev => {
@@ -459,6 +485,12 @@ export default function App() {
       list = list.filter(p => p.types.includes(selectedType));
     }
 
+    if (selectedCategory === 'legendary') {
+      list = list.filter(p => p.isLegendary);
+    } else if (selectedCategory === 'mythical') {
+      list = list.filter(p => p.isMythical);
+    }
+
     list.sort((a, b) => {
       if (sortBy === 'id_asc') return a.id - b.id;
       if (sortBy === 'id_desc') return b.id - a.id;
@@ -468,7 +500,7 @@ export default function App() {
     });
 
     return list;
-  }, [pokemonList, activeTab, favorites, searchTerm, selectedType, sortBy]);
+  }, [pokemonList, activeTab, favorites, searchTerm, selectedType, selectedCategory, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-neutral-900 font-sans pb-16">
@@ -517,7 +549,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">Tipe Elemen</label>
                   <select
@@ -526,7 +558,7 @@ export default function App() {
                     className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800"
                   >
                     <option value="all">Semua Tipe</option>
-                    {Object.entries(TYPE_DETAILS).map(([key, val]) => (
+                    {Object.entries(TYPE_DETAILS).filter(([key]) => key !== 'legendary' && key !== 'mythical').map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
                     ))}
                   </select>
@@ -543,6 +575,19 @@ export default function App() {
                     {Object.entries(GENERATIONS).map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
                     ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">Kategori Spesial</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    <option value="legendary">Hanya Legendary</option>
+                    <option value="mythical">Hanya Mythical</option>
                   </select>
                 </div>
 
@@ -598,36 +643,140 @@ export default function App() {
 
         {/* TAB COMPARISON */}
         {activeTab === 'compare' && (
-          <div className="bg-white p-8 rounded-3xl border border-neutral-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.01)] max-w-4xl mx-auto">
-            <h2 className="text-xl font-extrabold text-neutral-900 text-center mb-8">Bandingkan Pokémon</h2>
+          <div className="bg-white p-8 rounded-3xl border border-neutral-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.01)] max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-xl font-extrabold text-neutral-900 m-0">Bandingkan Pokémon</h2>
+              <p className="text-neutral-400 text-xs mt-1 m-0 font-medium">Pilih 2 Pokémon dari tab Jelajah untuk membandingkan statistik mereka.</p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Pokémon Header Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
               {[0, 1].map(index => {
                 const p = compareList[index];
                 if (!p) {
                   return (
-                     <div key={index} className="h-44 border border-dashed border-neutral-200 rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold bg-neutral-50/30">
-                      Pilih Pokémon ke-{index + 1} dari tab Jelajah
+                    <div key={index} className="h-52 border-2 border-dashed border-neutral-200 rounded-2xl flex flex-col items-center justify-center text-xs text-neutral-400 font-bold bg-neutral-50/30 gap-2">
+                      <svg className="w-8 h-8 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                      Pilih Pokémon ke-{index + 1}
                     </div>
                   );
                 }
                 return (
                   <div key={p.id} className="p-6 bg-neutral-50/50 rounded-2xl border border-neutral-200/40 text-center relative">
-                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900 font-bold text-[10px] cursor-pointer transition-colors bg-transparent border-0">Hapus</button>
+                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-neutral-100 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200/60 font-bold text-[9px] cursor-pointer transition-all border-0">✕ Hapus</button>
                     <img src={p.sprite} alt={p.name} className="w-24 h-24 mx-auto animate-float-hover" />
-                    <h3 className="capitalize font-extrabold text-sm text-neutral-850 mt-4">{p.name}</h3>
-                    <div className="grid grid-cols-2 gap-2.5 mt-6 text-[9px] font-bold text-left">
-                      {p.stats.map(s => (
-                        <div key={s.name} className="bg-white p-3 rounded-xl border border-neutral-200/40 flex justify-between items-center">
-                          <span className="text-neutral-450 uppercase text-[8px] tracking-wider">{s.name.replace('-', ' ')}</span>
-                          <span className="font-mono text-neutral-900 font-bold">{s.value}</span>
-                        </div>
+                    <h3 className="capitalize font-extrabold text-base text-neutral-900 mt-3 m-0">{p.name}</h3>
+                    <span className="font-mono text-[9px] text-neutral-400 font-bold">#{String(p.id).padStart(3, '0')}</span>
+                    <div className="flex justify-center gap-1.5 mt-2">
+                      {p.types.map(t => (
+                        <TypeBadge key={t} type={t} className="text-[8px]" />
                       ))}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-4 text-[9px]">
+                      <div className="bg-white p-2 rounded-lg border border-neutral-200/40">
+                        <span className="block text-[7px] text-neutral-400 uppercase font-bold">Tinggi</span>
+                        <span className="font-mono text-neutral-800 font-bold">{p.height / 10}m</span>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-neutral-200/40">
+                        <span className="block text-[7px] text-neutral-400 uppercase font-bold">Berat</span>
+                        <span className="font-mono text-neutral-800 font-bold">{p.weight / 10}kg</span>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg border border-neutral-200/40">
+                        <span className="block text-[7px] text-neutral-400 uppercase font-bold">Total</span>
+                        <span className="font-mono text-neutral-800 font-bold">{p.stats.reduce((sum, s) => sum + s.value, 0)}</span>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
+
+            {/* Stats Comparison Bars */}
+            {compareList.length === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0 text-center">Perbandingan Statistik Detail</h3>
+                <div className="space-y-3">
+                  {compareList[0].stats.map((s, i) => {
+                    const val1 = s.value;
+                    const val2 = compareList[1].stats[i]?.value || 0;
+                    const pct1 = (val1 / 165) * 100;
+                    const pct2 = (val2 / 165) * 100;
+                    const isWinner1 = val1 > val2;
+                    const isWinner2 = val2 > val1;
+                    const isTie = val1 === val2;
+                    const statLabel = s.name.toUpperCase().replace('-', ' ');
+
+                    return (
+                      <div key={s.name} className="bg-neutral-50/40 rounded-xl border border-neutral-200/40 p-4">
+                        <div className="text-center mb-2">
+                          <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider">{statLabel}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {/* Left value */}
+                          <span className={`font-mono text-sm font-bold min-w-[36px] text-right ${isWinner1 ? 'text-neutral-900' : isTie ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                            {val1}
+                          </span>
+                          {/* Left bar */}
+                          <div className="flex-1 flex justify-end">
+                            <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+                              <div
+                                style={{ width: `${Math.min(pct1, 100)}%` }}
+                                className={`h-full rounded-full transition-all duration-500 ${isWinner1 ? 'bg-neutral-900' : isTie ? 'bg-neutral-500' : 'bg-neutral-300'}`}
+                              />
+                            </div>
+                          </div>
+                          {/* Divider */}
+                          <div className="w-px h-5 bg-neutral-200" />
+                          {/* Right bar */}
+                          <div className="flex-1">
+                            <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+                              <div
+                                style={{ width: `${Math.min(pct2, 100)}%` }}
+                                className={`h-full rounded-full transition-all duration-500 ${isWinner2 ? 'bg-neutral-900' : isTie ? 'bg-neutral-500' : 'bg-neutral-300'}`}
+                              />
+                            </div>
+                          </div>
+                          {/* Right value */}
+                          <span className={`font-mono text-sm font-bold min-w-[36px] text-left ${isWinner2 ? 'text-neutral-900' : isTie ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                            {val2}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Total Stats */}
+                  {(() => {
+                    const total1 = compareList[0].stats.reduce((sum, s) => sum + s.value, 0);
+                    const total2 = compareList[1].stats.reduce((sum, s) => sum + s.value, 0);
+                    const isWinner1 = total1 > total2;
+                    const isWinner2 = total2 > total1;
+                    const isTie = total1 === total2;
+                    return (
+                      <div className="bg-neutral-900 rounded-xl p-4 text-white">
+                        <div className="text-center mb-2">
+                          <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider">TOTAL BASE STATS</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-center flex-1">
+                            <span className={`font-mono text-xl font-black ${isWinner1 ? 'text-white' : 'text-neutral-500'}`}>{total1}</span>
+                            <span className="block capitalize text-[9px] text-neutral-400 font-bold mt-0.5">{compareList[0].name}</span>
+                            {isWinner1 && <span className="text-[8px] text-neutral-300 font-bold">★ UNGGUL</span>}
+                          </div>
+                          <div className="text-neutral-600 text-xs font-bold">VS</div>
+                          <div className="text-center flex-1">
+                            <span className={`font-mono text-xl font-black ${isWinner2 ? 'text-white' : 'text-neutral-500'}`}>{total2}</span>
+                            <span className="block capitalize text-[9px] text-neutral-400 font-bold mt-0.5">{compareList[1].name}</span>
+                            {isWinner2 && <span className="text-[8px] text-neutral-300 font-bold">★ UNGGUL</span>}
+                          </div>
+                        </div>
+                        {isTie && <p className="text-center text-[9px] text-neutral-400 font-bold mt-2 m-0">Seri! Keduanya seimbang.</p>}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -640,6 +789,11 @@ export default function App() {
             onRenameTeam={handleRenameTeam}
             onRemoveFromTeam={handleRemoveFromTeam}
           />
+        )}
+
+        {/* TAB BATTLE SIMULATOR */}
+        {activeTab === 'battle' && (
+          <BattleSimulator teams={teams} />
         )}
 
         {/* TAB GAME */}

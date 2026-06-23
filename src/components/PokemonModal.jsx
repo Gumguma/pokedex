@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TYPE_DETAILS } from '../constants/pokemonData';
+import TypeBadge from './TypeBadge';
 import { calculateTypeWeakness } from '../utils/statCalculator';
 
 export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon, cachedDetails, journalLogs = [], onCreateJournal, onUpdateJournal, onDeleteJournal }) {
@@ -60,14 +60,11 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                         </div>
 
                         <div className="flex flex-wrap gap-1.5">
-                            {pokemon.types.map(t => {
-                                const detail = TYPE_DETAILS[t] || TYPE_DETAILS.normal;
-                                return (
-                                    <span key={t} className={`text-[9px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-md border ${detail.color}`}>
-                                        {detail.label}
-                                    </span>
-                                );
-                            })}
+                            {pokemon.isLegendary && <TypeBadge type="legendary" className="px-2.5" />}
+                            {pokemon.isMythical && <TypeBadge type="mythical" className="px-2.5" />}
+                            {pokemon.types.map(t => (
+                                <TypeBadge key={t} type={t} className="px-2.5" />
+                            ))}
                         </div>
 
                         <p className="text-xs leading-relaxed text-neutral-500 bg-neutral-50/50 p-4 rounded-xl border border-neutral-200/30 italic m-0">
@@ -114,25 +111,27 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                 <div className="space-y-3">
                     <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0">Ketahanan & Kelemahan Elemen</h3>
                     <div className="flex flex-wrap gap-1.5">
-                        {weaknesses.map(item => {
-                            const detail = TYPE_DETAILS[item.type] || { label: item.type };
-                            let badgeColor = "bg-neutral-50 border-neutral-200/60 text-neutral-500";
+                        {weaknesses.map(item => (
+                            <TypeBadge
+                                key={item.type}
+                                type={item.type}
+                                isWeakness={true}
+                                multiplier={item.multiplier}
+                            />
+                        ))}
+                    </div>
+                </div>
 
-                            if (item.multiplier >= 2) {
-                                badgeColor = "bg-neutral-900 text-white border-neutral-950 font-bold";
-                            } else if (item.multiplier === 0) {
-                                badgeColor = "bg-neutral-100 text-neutral-300 border-neutral-200/40 line-through";
-                            } else if (item.multiplier < 1) {
-                                badgeColor = "bg-neutral-100 text-neutral-600 border-neutral-200/80";
-                            }
-
-                            return (
-                                <div key={item.type} className={`px-2.5 py-1 rounded-md border flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider ${badgeColor}`}>
-                                    <span>{detail.label}</span>
-                                    <span className="font-mono opacity-85">{item.multiplier}x</span>
-                                </div>
-                            );
-                        })}
+                {/* Daftar Jurus / Skill */}
+                <div className="space-y-3">
+                    <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0">Daftar Jurus Tempur (Moves)</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                        {(pokemon.moves || ['Tackle', 'Growl', 'Pound', 'Scratch']).map((m, i) => (
+                            <div key={i} className="bg-neutral-50/50 border border-neutral-200/40 p-2.5 rounded-xl flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-neutral-900 flex-shrink-0"></div>
+                                <span className="text-[10px] font-bold text-neutral-800">{m}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 

@@ -16,8 +16,32 @@ export const TYPE_DETAILS = {
     dragon: { color: 'bg-zinc-900 text-zinc-100 border-zinc-950', hex: '#6F35FC', label: 'Naga' },
     steel: { color: 'bg-neutral-100 text-neutral-700 border-neutral-300', hex: '#B7B7CE', label: 'Baja' },
     fairy: { color: 'bg-zinc-50 text-zinc-600 border-zinc-200', hex: '#D685AD', label: 'Peri' },
-    dark: { color: 'bg-zinc-950 text-zinc-50 border-zinc-950', hex: '#705746', label: 'Gelap' }
+    dark: { color: 'bg-zinc-950 text-zinc-50 border-zinc-950', hex: '#705746', label: 'Gelap' },
+    legendary: { color: 'bg-neutral-950 text-white border-neutral-950 font-extrabold', hex: '#FFD700', label: 'Legendary' },
+    mythical: { color: 'bg-neutral-200 text-neutral-800 border-neutral-350 font-extrabold', hex: '#D8BFD8', label: 'Mythical' }
 };
+
+export const LEGENDARY_IDS = new Set([
+    144, 145, 146, 150, // Gen 1
+    243, 244, 245, 249, 250, // Gen 2
+    377, 378, 379, 380, 381, 382, 383, 384, // Gen 3
+    480, 481, 482, 483, 484, 485, 486, 487, 488, // Gen 4
+    638, 639, 640, 641, 642, 643, 644, 645, 646, // Gen 5
+    716, 717, 718, // Gen 6
+    772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, // Gen 7
+    888, 889, 890, 891, 892, 894, 895, 896, 897, 898 // Gen 8
+]);
+
+export const MYTHICAL_IDS = new Set([
+    151, // Gen 1
+    251, // Gen 2
+    385, 386, // Gen 3
+    489, 490, 491, 492, 493, // Gen 4
+    494, 647, 648, 649, // Gen 5
+    719, 720, 721, // Gen 6
+    801, 802, 807, 808, 809, // Gen 7
+    893 // Gen 8
+]);
 
 export const TYPE_EFFECTIVENESS = {
     normal: { rock: 0.5, ghost: 0, steel: 0.5 },

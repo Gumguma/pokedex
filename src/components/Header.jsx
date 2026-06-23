@@ -80,6 +80,16 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
                     </button>
 
                     <button
+                        onClick={() => setActiveTab('battle')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'battle'
+                                ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'
+                                : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/30'
+                            }`}
+                    >
+                        Arena Tempur
+                    </button>
+
+                    <button
                         onClick={() => setActiveTab('journal')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'journal'
                                 ? 'bg-white text-neutral-950 shadow-sm border border-neutral-200/50'

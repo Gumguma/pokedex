@@ -1,4 +1,4 @@
-import { TYPE_DETAILS } from '../constants/pokemonData';
+import TypeBadge from './TypeBadge';
 
 export default function PokemonCard({
     pokemon,
@@ -72,18 +72,12 @@ export default function PokemonCard({
                 </h3>
 
                 {/* Elemen Tipe */}
-                <div className="flex gap-1.5 mt-2">
-                    {pokemon.types.map(t => {
-                        const detail = TYPE_DETAILS[t] || TYPE_DETAILS.normal;
-                        return (
-                            <span
-                                key={t}
-                                className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border ${detail.color}`}
-                            >
-                                {detail.label}
-                            </span>
-                        );
-                    })}
+                <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {pokemon.isLegendary && <TypeBadge type="legendary" />}
+                    {pokemon.isMythical && <TypeBadge type="mythical" />}
+                    {pokemon.types.map(t => (
+                        <TypeBadge key={t} type={t} />
+                    ))}
                 </div>
             </div>
 
