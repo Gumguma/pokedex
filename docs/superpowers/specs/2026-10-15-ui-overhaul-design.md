@@ -55,7 +55,7 @@ Radius konsisten: `12` (input/filter), `16` (panel), `18`/`rounded-2xl` (kartu),
 ### `src/components/PokemonCard.jsx`
 - Kartu putih, `rounded-2xl`, border `#e9ebf0`, shadow lembut, hover lift.
 - Aksi (＋ tim / ⇅ banding / ♥ favorit) jadi ikon 22px `rounded-lg`; state aktif = gradient indigo→violet + teks putih.
-- Sprite: div `h-26` putih; halo `radial-gradient(circle, <hex tipe-1>, transparent 68%)` opacity `.4`; sprite `w-20 h-20` drop-shadow.
+- Sprite: div `h-[104px]` putih; halo `radial-gradient(circle, <hex tipe-1>, transparent 68%)` opacity `.4`; sprite `w-20 h-20` drop-shadow.
 - Badge tipe: pakai `TypeBadge` baru (solid hex).
 - CTA "Lihat Detail": teks muted → indigo saat hover; favorit = tint `indigo-50`.
 
