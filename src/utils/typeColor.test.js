@@ -13,6 +13,12 @@ test('white ink on dark fills', () => {
   assert.equal(textOn('#4338CA'), '#ffffff');
 });
 
+test('dark ink on all light fills', () => {
+  for (const hex of ['#F7D02C', '#96D9D6', '#E2BF65', '#B7B7CE', '#D685AD', '#A8A77A', '#FFD700', '#D8BFD8']) {
+    assert.equal(textOn(hex), '#0f172a', `bad ink for ${hex}`);
+  }
+});
+
 test('every type detail has a 6-digit hex', () => {
   for (const [key, d] of Object.entries(TYPE_DETAILS)) {
     assert.match(d.hex, /^#[0-9A-Fa-f]{6}$/, `bad hex for ${key}`);
