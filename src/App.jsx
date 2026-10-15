@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Header from './components/Header';
 import PokemonCard from './components/PokemonCard';
+import PokemonCardSkeleton from './components/PokemonCardSkeleton';
 import PokemonModal from './components/PokemonModal';
 import TeamManager from './components/TeamManager';
 import QuizGame from './components/QuizGame';
@@ -9,44 +10,61 @@ import TypeBadge from './components/TypeBadge';
 import BattleSimulator from './components/BattleSimulator';
 
 import { GENERATIONS, TYPE_DETAILS, LEGENDARY_IDS, MYTHICAL_IDS } from './constants/pokemonData';
-import { playPokemonCry } from './utils/audioHelper';
+import { playPokemonCry, cleanupAudio } from './utils/audioHelper';
+import { useDebounce } from './hooks/useDebounce';
+import { useFavorites } from './hooks/useFavorites';
+import { useTeams } from './hooks/useTeams';
+import { useJournal } from './hooks/useJournal';
+import { safeSetItem, safeGetItem } from './utils/storage';
 
 export default function App() {
-  // Global States
+  const [toastMessage, setToastMessage] = useState(null);
+  const [apiError, setApiError] = useState(null);
+
+  const showToast = useCallback((msg) => {
+    setToastMessage(msg);
+  }, []);
+
+  const handleApiError = useCallback((msg) => {
+    setApiError(msg);
+  }, []);
+
+  // Global States & Custom Hooks
   const [pokemonList, setPokemonList] = useState([]);
   const [cachedDetails, setCachedDetails] = useState({});
-  const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('pokedex_favs');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [journalLogs, setJournalLogs] = useState(() => {
-    const saved = localStorage.getItem('pokedex_journal');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [toastMessage, setToastMessage] = useState(null);
-
-  // CRUD Team State
-  const [teams, setTeams] = useState(() => {
-    const saved = localStorage.getItem('pokedex_teams');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Tim Utama Saya', members: [] }
-    ];
-  });
+  const { favorites, toggleFavorite } = useFavorites(showToast);
+  const {
+    teams,
+    createTeam,
+    deleteTeam,
+    renameTeam,
+    addPokemonToTeam,
+    removePokemonFromTeam
+  } = useTeams(showToast, handleApiError);
+  const {
+    journalLogs,
+    createJournal,
+    updateJournal,
+    deleteJournal
+  } = useJournal(showToast, handleApiError);
 
   // Navigation & Filtering States
   const [activeTab, setActiveTab] = useState('explore');
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [selectedType, setSelectedType] = useState('all');
   const [selectedGen, setSelectedGen] = useState('all');
   const [sortBy, setSortBy] = useState('id_asc');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState(null);
 
   // Overlay Team Selector State
   const [showTeamSelector, setShowTeamSelector] = useState(false);
   const [selectedPokemonToTeam, setSelectedPokemonToTeam] = useState(null);
+
+  // AbortController untuk cancel fetch sebelumnya
+  const abortControllerRef = useRef(null);
 
   // Modal / Comparison States
   const [selectedPokemon, setSelectedPokemon] = useState(null);
@@ -58,24 +76,12 @@ export default function App() {
   const [gameOptions, setGameOptions] = useState([]);
   const [gameScore, setGameScore] = useState(0);
   const [gameHighScore, setGameHighScore] = useState(() => {
-    return parseInt(localStorage.getItem('pokedex_highscore') || '0', 10);
+    return safeGetItem('pokedex_highscore', 0);
   });
   const [gameResult, setGameResult] = useState(null);
   const [gameLoading, setGameLoading] = useState(false);
 
-  // Auto-sync LocalStorage
-  useEffect(() => {
-    localStorage.setItem('pokedex_favs', JSON.stringify(favorites));
-  }, [favorites]);
-
-  useEffect(() => {
-    localStorage.setItem('pokedex_teams', JSON.stringify(teams));
-  }, [teams]);
-
-  useEffect(() => {
-    localStorage.setItem('pokedex_journal', JSON.stringify(journalLogs));
-  }, [journalLogs]);
-
+  // Auto-dismiss Toast
   useEffect(() => {
     if (toastMessage) {
       const timer = setTimeout(() => {
@@ -85,12 +91,28 @@ export default function App() {
     }
   }, [toastMessage]);
 
-  const showToast = useCallback((msg) => {
-    setToastMessage(msg);
+  // Cleanup audio context saat unmount
+  useEffect(() => {
+    return () => {
+      cleanupAudio();
+      // Cancel pending fetch saat unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   // Fetching Pokemons
   const fetchPokemonBatch = useCallback(async (reset = false) => {
+    // Cancel previous fetch jika masih running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Buat abort controller baru
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+    
     setLoading(true);
     setApiError(null);
     try {
@@ -107,14 +129,14 @@ export default function App() {
         currentLimit = reset ? 151 : 48;
       }
 
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${currentLimit}&offset=${currentOffset}`);
-      if (!res.ok) throw new Error();
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${currentLimit}&offset=${currentOffset}`, { signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
       const detailedPromises = data.results.map(async (p) => {
         if (cachedDetails[p.name]) return cachedDetails[p.name];
 
-        const pRes = await fetch(p.url);
+        const pRes = await fetch(p.url, { signal });
         if (!pRes.ok) return null;
         const pData = await pRes.json();
 
@@ -122,7 +144,9 @@ export default function App() {
           id: pData.id,
           name: pData.name,
           types: pData.types.map(t => t.type.name),
-          sprite: pData.sprites.other['official-artwork'].front_default || pData.sprites.front_default,
+          sprite: pData.sprites?.other?.['official-artwork']?.front_default 
+              || pData.sprites?.front_default 
+              || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png',
           stats: pData.stats.map(s => ({ name: s.stat.name, value: s.base_stat })),
           height: pData.height,
           weight: pData.weight,
@@ -152,8 +176,30 @@ export default function App() {
         setOffset(currentOffset + currentLimit);
       }
     } catch (err) {
+      // Jangan set error jika fetch di-abort (user-initiated)
+      if (err.name === 'AbortError') {
+        console.log('Fetch dibatalkan (user ganti generation)');
+        return;
+      }
+      
       console.warn("Gagal memuat batch Pokémon:", err);
-      setApiError('Tidak dapat memuat data dari server PokéAPI.');
+      
+      // Error handling lebih spesifik
+      let errorMessage;
+      
+      if (!navigator.onLine) {
+        errorMessage = '❌ Tidak ada koneksi internet. Periksa jaringan Anda.';
+      } else if (err.message.includes('404')) {
+        errorMessage = '🔍 Data tidak ditemukan di PokéAPI.';
+      } else if (err.message.includes('429')) {
+        errorMessage = '⏳ Terlalu banyak request. Tunggu sebentar dan coba lagi.';
+      } else if (err.message.includes('500') || err.message.includes('503')) {
+        errorMessage = '🔧 Server PokéAPI sedang bermasalah. Coba lagi nanti.';
+      } else {
+        errorMessage = `⚠️ Gagal memuat data: ${err.message}`;
+      }
+      
+      setApiError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -236,18 +282,22 @@ export default function App() {
   const handleLiveSearch = async (term) => {
     if (!term.trim()) return;
     const cleanTerm = term.toLowerCase().trim();
+    const abortController = new AbortController();
+    
     setLoading(true);
     setApiError(null);
     try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${cleanTerm}`);
-      if (!res.ok) throw new Error();
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${cleanTerm}`, { signal: abortController.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const pData = await res.json();
 
       const mapped = {
         id: pData.id,
         name: pData.name,
         types: pData.types.map(t => t.type.name),
-        sprite: pData.sprites.other['official-artwork'].front_default || pData.sprites.front_default,
+        sprite: pData.sprites?.other?.['official-artwork']?.front_default 
+            || pData.sprites?.front_default 
+            || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png',
         stats: pData.stats.map(s => ({ name: s.stat.name, value: s.base_stat })),
         height: pData.height,
         weight: pData.weight,
@@ -267,6 +317,8 @@ export default function App() {
       setCachedDetails(prev => ({ ...prev, [mapped.name]: mapped }));
       loadFullPokemonDetails(mapped);
     } catch (err) {
+      if (err.name === 'AbortError') return;
+      
       console.warn("Gagal melakukan pencarian live:", err);
       setApiError(`Pokémon "${term}" tidak ditemukan di PokéAPI.`);
     } finally {
@@ -292,7 +344,9 @@ export default function App() {
       const targetPoke = {
         id: pData.id,
         name: pData.name.toUpperCase(),
-        sprite: pData.sprites.other['official-artwork'].front_default || pData.sprites.front_default,
+        sprite: pData.sprites?.other?.['official-artwork']?.front_default 
+            || pData.sprites?.front_default 
+            || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png',
         types: pData.types.map(t => t.type.name)
       };
 
@@ -331,7 +385,7 @@ export default function App() {
       setGameScore(newScore);
       if (newScore > gameHighScore) {
         setGameHighScore(newScore);
-        localStorage.setItem('pokedex_highscore', newScore.toString());
+        safeSetItem('pokedex_highscore', newScore.toString());
       }
     } else {
       setGameResult('wrong');
@@ -339,119 +393,11 @@ export default function App() {
     }
   };
 
-  // CRUD Team Handlers
-  const handleCreateTeam = (name) => {
-    const newTeam = {
-      id: Date.now().toString(),
-      name,
-      members: []
-    };
-    setTeams([...teams, newTeam]);
-    showToast(`Tim "${name}" berhasil dibuat.`);
-  };
-
-  const handleDeleteTeam = (id) => {
-    const team = teams.find(t => t.id === id);
-    setTeams(teams.filter(t => t.id !== id));
-    if (team) {
-      showToast(`Tim "${team.name}" berhasil dihapus.`);
-    }
-  };
-
-  const handleRenameTeam = (id, newName) => {
-    setTeams(teams.map(t => t.id === id ? { ...t, name: newName } : t));
-    showToast(`Nama tim diubah menjadi "${newName}".`);
-  };
-
-  const handleAddToTeam = (teamId, pokemon) => {
-    let added = false;
-    let targetTeamName = '';
-    let errorMsg = '';
-    
-    setTeams(teams.map(t => {
-      if (t.id === teamId) {
-        if (t.members.length >= 6) {
-          errorMsg = "Satu tim maksimal berisi 6 Pokémon.";
-          return t;
-        }
-        if (t.members.some(m => m.id === pokemon.id)) {
-          errorMsg = "Pokémon ini sudah ada di dalam tim ini.";
-          return t;
-        }
-        added = true;
-        targetTeamName = t.name;
-        return { ...t, members: [...t.members, pokemon] };
-      }
-      return t;
-    }));
-
-    if (errorMsg) {
-      setApiError(errorMsg);
-    } else if (added) {
-      showToast(`${pokemon.name} ditambahkan ke ${targetTeamName}.`);
-    }
-    setShowTeamSelector(false);
-  };
-
-  const handleRemoveFromTeam = (teamId, pokemonId) => {
-    let removedName = '';
-    let targetTeamName = '';
-    
-    setTeams(teams.map(t => {
-      if (t.id === teamId) {
-        const member = t.members.find(m => m.id === pokemonId);
-        if (member) {
-          removedName = member.name;
-          targetTeamName = t.name;
-        }
-        return { ...t, members: t.members.filter(m => m.id !== pokemonId) };
-      }
-      return t;
-    }));
-
-    if (removedName) {
-      showToast(`${removedName} dihapus dari ${targetTeamName}.`);
-    }
-  };
-
-  // CRUD Journal Handlers
-  const handleCreateJournal = (log) => {
-    const newLog = {
-      id: Date.now().toString(),
-      ...log
-    };
-    setJournalLogs([newLog, ...journalLogs]);
-    showToast(`Jurnal tangkapan untuk ${log.pokemonName} berhasil disimpan.`);
-  };
-
-  const handleUpdateJournal = (id, updatedLog) => {
-    setJournalLogs(journalLogs.map(log => 
-      log.id === id ? { ...log, ...updatedLog } : log
-    ));
-    showToast("Jurnal tangkapan berhasil diperbarui.");
-  };
-
-  const handleDeleteJournal = (id) => {
-    const log = journalLogs.find(l => l.id === id);
-    setJournalLogs(journalLogs.filter(log => log.id !== id));
-    if (log) {
-      showToast(`Jurnal tangkapan untuk ${log.pokemonName} berhasil dihapus.`);
-    } else {
-      showToast("Jurnal tangkapan berhasil dihapus.");
-    }
-  };
-
   // Favorites & Compare
   const handleToggleFav = (id) => {
     const p = pokemonList.find(x => x.id === id) || Object.values(cachedDetails).find(x => x.id === id);
     const nameStr = p ? p.name : `Pokémon #${id}`;
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(f => f !== id));
-      showToast(`${nameStr} dihapus dari Favorit.`);
-    } else {
-      setFavorites([...favorites, id]);
-      showToast(`${nameStr} ditambahkan ke Favorit.`);
-    }
+    toggleFavorite(id, nameStr);
   };
 
   const handleToggleCompare = (poke) => {
@@ -476,8 +422,8 @@ export default function App() {
       list = list.filter(p => favorites.includes(p.id));
     }
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase().trim();
+    if (debouncedSearch) {
+      const term = debouncedSearch.toLowerCase().trim();
       list = list.filter(p => p.name.includes(term) || p.id.toString() === term);
     }
 
@@ -500,13 +446,13 @@ export default function App() {
     });
 
     return list;
-  }, [pokemonList, activeTab, favorites, searchTerm, selectedType, selectedCategory, sortBy]);
+  }, [pokemonList, activeTab, favorites, debouncedSearch, selectedType, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-neutral-900 font-sans pb-16">
+    <div className="min-h-screen bg-[#f6f7fb] text-slate-900 font-sans pb-16">
 
       {modalLoading && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-neutral-900 animate-pulse z-50"></div>
+        <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-700 to-violet-600 animate-pulse z-50"></div>
       )}
 
       <Header
@@ -531,19 +477,19 @@ export default function App() {
         {(activeTab === 'explore' || activeTab === 'favorites') && (
           <>
             {/* Filters */}
-            <div className="bg-white p-6 rounded-2xl border border-neutral-200/50 flex flex-col gap-5 mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
+            <div className="bg-white p-6 rounded-2xl border border-[#e9ebf0] flex flex-col gap-5 mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
               <div className="flex flex-col md:flex-row items-center gap-3">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Cari Pokémon (cth: '25' atau 'Ditto')..."
-                  className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-800 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-neutral-900 placeholder:text-neutral-400"
+                  className="w-full bg-[#f6f7fb] border border-[#e9ebf0] focus:border-indigo-600 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-slate-900 placeholder:text-slate-400"
                 />
                 <button
                   onClick={() => handleLiveSearch(searchTerm)}
                   disabled={loading || !searchTerm.trim()}
-                  className="w-full md:w-auto px-6 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-850 disabled:opacity-40 text-white font-bold text-xs transition-all whitespace-nowrap cursor-pointer shadow-sm"
+                  className="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 disabled:opacity-40 text-white font-bold text-xs transition-all whitespace-nowrap cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
                 >
                   Tembak PokéAPI Live
                 </button>
@@ -555,7 +501,7 @@ export default function App() {
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800"
+                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Tipe</option>
                     {Object.entries(TYPE_DETAILS).filter(([key]) => key !== 'legendary' && key !== 'mythical').map(([key, val]) => (
@@ -570,7 +516,7 @@ export default function App() {
                     disabled={activeTab === 'favorites'}
                     value={selectedGen}
                     onChange={(e) => setSelectedGen(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800 disabled:opacity-50"
+                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white disabled:opacity-50"
                   >
                     {Object.entries(GENERATIONS).map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
@@ -583,7 +529,7 @@ export default function App() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800"
+                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Kategori</option>
                     <option value="legendary">Hanya Legendary</option>
@@ -596,7 +542,7 @@ export default function App() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-200 py-2.5 px-3 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-neutral-800"
+                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="id_asc">ID (Terkecil)</option>
                     <option value="id_desc">ID (Terbesar)</option>
@@ -609,21 +555,25 @@ export default function App() {
 
             {/* Grid Card List */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {processedPokemon.map(p => (
-                <PokemonCard
-                  key={p.id}
-                  pokemon={p}
-                  isFav={favorites.includes(p.id)}
-                  isComparing={compareList.some(c => c.id === p.id)}
-                  onToggleFav={handleToggleFav}
-                  onToggleCompare={handleToggleCompare}
-                  onOpenDetails={loadFullPokemonDetails}
-                  onAddToTeamClick={(poke) => {
-                    setSelectedPokemonToTeam(poke);
-                    setShowTeamSelector(true);
-                  }}
-                />
-              ))}
+              {loading && processedPokemon.length === 0 ? (
+                <PokemonCardSkeleton count={8} />
+              ) : (
+                processedPokemon.map(p => (
+                  <PokemonCard
+                    key={p.id}
+                    pokemon={p}
+                    isFav={favorites.includes(p.id)}
+                    isComparing={compareList.some(c => c.id === p.id)}
+                    onToggleFav={handleToggleFav}
+                    onToggleCompare={handleToggleCompare}
+                    onOpenDetails={loadFullPokemonDetails}
+                    onAddToTeamClick={(poke) => {
+                      setSelectedPokemonToTeam(poke);
+                      setShowTeamSelector(true);
+                    }}
+                  />
+                ))
+              )}
             </div>
 
             {/* Pagination Load More */}
@@ -632,7 +582,7 @@ export default function App() {
                 <button
                   onClick={() => fetchPokemonBatch(false)}
                   disabled={loading}
-                  className="px-6 py-3.5 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-50 disabled:opacity-50 text-neutral-800 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="px-6 py-3.5 rounded-xl bg-white border border-[#e9ebf0] hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm"
                 >
                   {loading ? 'Sedang Memuat...' : 'Muat Lebih Banyak'}
                 </button>
@@ -643,10 +593,10 @@ export default function App() {
 
         {/* TAB COMPARISON */}
         {activeTab === 'compare' && (
-          <div className="bg-white p-8 rounded-3xl border border-neutral-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.01)] max-w-5xl mx-auto">
+          <div className="bg-white p-8 rounded-2xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-xl font-extrabold text-neutral-900 m-0">Bandingkan Pokémon</h2>
-              <p className="text-neutral-400 text-xs mt-1 m-0 font-medium">Pilih 2 Pokémon dari tab Jelajah untuk membandingkan statistik mereka.</p>
+              <h2 className="text-xl font-extrabold text-indigo-700 m-0">Bandingkan Pokémon</h2>
+              <p className="text-slate-400 text-xs mt-1 m-0 font-medium">Pilih 2 Pokémon dari tab Jelajah untuk membandingkan statistik mereka.</p>
             </div>
 
             {/* Pokémon Header Cards */}
@@ -655,15 +605,15 @@ export default function App() {
                 const p = compareList[index];
                 if (!p) {
                   return (
-                    <div key={index} className="h-52 border-2 border-dashed border-neutral-200 rounded-2xl flex flex-col items-center justify-center text-xs text-neutral-400 font-bold bg-neutral-50/30 gap-2">
+                    <div key={index} className="h-52 border-2 border-dashed border-[#e9ebf0] rounded-2xl flex flex-col items-center justify-center text-xs text-slate-400 font-bold bg-[#f6f7fb]/40 gap-2">
                       <svg className="w-8 h-8 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       Pilih Pokémon ke-{index + 1}
                     </div>
                   );
                 }
                 return (
-                  <div key={p.id} className="p-6 bg-neutral-50/50 rounded-2xl border border-neutral-200/40 text-center relative">
-                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-neutral-100 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200/60 font-bold text-[9px] cursor-pointer transition-all border-0">✕ Hapus</button>
+                  <div key={p.id} className="p-6 bg-[#f6f7fb]/60 rounded-2xl border border-[#e9ebf0] text-center relative">
+                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 font-bold text-[9px] cursor-pointer transition-all border border-[#e9ebf0]">✕ Hapus</button>
                     <img src={p.sprite} alt={p.name} className="w-24 h-24 mx-auto animate-float-hover" />
                     <h3 className="capitalize font-extrabold text-base text-neutral-900 mt-3 m-0">{p.name}</h3>
                     <span className="font-mono text-[9px] text-neutral-400 font-bold">#{String(p.id).padStart(3, '0')}</span>
@@ -707,7 +657,7 @@ export default function App() {
                     const statLabel = s.name.toUpperCase().replace('-', ' ');
 
                     return (
-                      <div key={s.name} className="bg-neutral-50/40 rounded-xl border border-neutral-200/40 p-4">
+                      <div key={s.name} className="bg-[#f6f7fb]/50 rounded-xl border border-[#e9ebf0] p-4">
                         <div className="text-center mb-2">
                           <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider">{statLabel}</span>
                         </div>
@@ -721,7 +671,7 @@ export default function App() {
                             <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
                               <div
                                 style={{ width: `${Math.min(pct1, 100)}%` }}
-                                className={`h-full rounded-full transition-all duration-500 ${isWinner1 ? 'bg-neutral-900' : isTie ? 'bg-neutral-500' : 'bg-neutral-300'}`}
+                                className={`h-full rounded-full transition-all duration-500 ${isWinner1 ? 'bg-indigo-600' : isTie ? 'bg-slate-400' : 'bg-slate-200'}`}
                               />
                             </div>
                           </div>
@@ -732,7 +682,7 @@ export default function App() {
                             <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
                               <div
                                 style={{ width: `${Math.min(pct2, 100)}%` }}
-                                className={`h-full rounded-full transition-all duration-500 ${isWinner2 ? 'bg-neutral-900' : isTie ? 'bg-neutral-500' : 'bg-neutral-300'}`}
+                                className={`h-full rounded-full transition-all duration-500 ${isWinner2 ? 'bg-indigo-600' : isTie ? 'bg-slate-400' : 'bg-slate-200'}`}
                               />
                             </div>
                           </div>
@@ -784,10 +734,10 @@ export default function App() {
         {activeTab === 'teams' && (
           <TeamManager
             teams={teams}
-            onCreateTeam={handleCreateTeam}
-            onDeleteTeam={handleDeleteTeam}
-            onRenameTeam={handleRenameTeam}
-            onRemoveFromTeam={handleRemoveFromTeam}
+            onCreateTeam={createTeam}
+            onDeleteTeam={deleteTeam}
+            onRenameTeam={renameTeam}
+            onRemoveFromTeam={removePokemonFromTeam}
           />
         )}
 
@@ -814,8 +764,8 @@ export default function App() {
         {activeTab === 'journal' && (
           <JournalTimeline
             journalLogs={journalLogs}
-            onUpdateJournal={handleUpdateJournal}
-            onDeleteJournal={handleDeleteJournal}
+            onUpdateJournal={updateJournal}
+            onDeleteJournal={deleteJournal}
           />
         )}
 
@@ -824,7 +774,7 @@ export default function App() {
       {/* OVERLAY: Add to Team Select Modal */}
       {showTeamSelector && selectedPokemonToTeam && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-          <div className="bg-white rounded-3xl border border-neutral-200/60 p-8 max-w-sm w-full space-y-5 shadow-2xl">
+          <div className="bg-white rounded-3xl border border-[#e9ebf0] p-8 max-w-sm w-full space-y-5 shadow-2xl">
             <h3 className="text-sm font-extrabold text-neutral-900 m-0">Tambahkan ke Tim</h3>
             <p className="text-neutral-400 text-xs m-0">Pilih slot tim untuk memasukkan <strong className="capitalize text-neutral-600">{selectedPokemonToTeam.name}</strong>:</p>
 
@@ -832,8 +782,14 @@ export default function App() {
               {teams.map(team => (
                 <button
                   key={team.id}
-                  onClick={() => handleAddToTeam(team.id, selectedPokemonToTeam)}
-                  className="w-full p-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/60 rounded-xl text-left text-xs font-bold capitalize text-neutral-700 transition-all flex justify-between items-center cursor-pointer"
+                  onClick={() => {
+                    const ok = addPokemonToTeam(team.id, selectedPokemonToTeam);
+                    if (ok) {
+                      setShowTeamSelector(false);
+                      setSelectedPokemonToTeam(null);
+                    }
+                  }}
+                  className="w-full p-3 bg-[#f6f7fb] hover:bg-indigo-50 hover:border-indigo-200 border border-[#e9ebf0] rounded-xl text-left text-xs font-bold capitalize text-slate-700 transition-all flex justify-between items-center cursor-pointer"
                 >
                   <span>{team.name}</span>
                   <span className="text-[10px] text-neutral-400">{team.members.length}/6 Anggota</span>
@@ -860,15 +816,15 @@ export default function App() {
           onOpenDifferentPokemon={loadFullPokemonDetails}
           cachedDetails={cachedDetails}
           journalLogs={journalLogs}
-          onCreateJournal={handleCreateJournal}
-          onUpdateJournal={handleUpdateJournal}
-          onDeleteJournal={handleDeleteJournal}
+          onCreateJournal={createJournal}
+          onUpdateJournal={updateJournal}
+          onDeleteJournal={deleteJournal}
         />
       )}
 
       {/* TOAST NOTIFIKASI */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-neutral-900 border border-neutral-950 text-white text-[11px] font-bold tracking-tight shadow-xl flex items-center gap-2.5 animate-slide-up box-border transition-all">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-neutral-900 border border-indigo-500/30 text-white text-[11px] font-bold tracking-tight shadow-xl flex items-center gap-2.5 animate-slide-up box-border transition-all">
           <svg className="w-3.5 h-3.5 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 8v4M12 16h.01" />
