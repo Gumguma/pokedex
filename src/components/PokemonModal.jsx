@@ -34,19 +34,19 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-neutral-200/60 bg-white text-neutral-900 shadow-2xl p-8 flex flex-col gap-8 text-left scrollbar-none">
+            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-[#e9ebf0] bg-white text-slate-900 shadow-2xl p-8 flex flex-col gap-8 text-left scrollbar-none">
 
                 {/* Tombol Keluar */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-xl bg-neutral-50 border border-neutral-200/60 text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 transition-all cursor-pointer"
+                    className="absolute top-6 right-6 p-2 rounded-xl bg-[#f6f7fb] border border-[#e9ebf0] text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
 
                 {/* Atas: Gambar & Profil Utama */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div className="relative rounded-2xl bg-neutral-50 border border-neutral-150/50 p-8 flex flex-col items-center justify-center min-h-[220px]">
+                    <div className="relative rounded-2xl bg-neutral-50 border border-slate-200/50 p-8 flex flex-col items-center justify-center min-h-[220px]">
                         <span className="absolute top-4 left-4 font-mono text-[10px] font-bold text-neutral-300">
                             #{String(pokemon.id).padStart(3, '0')}
                         </span>
@@ -72,11 +72,11 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                         </p>
 
                         <div className="grid grid-cols-2 gap-3 text-[10px] font-bold">
-                            <div className="bg-neutral-50/60 p-3 rounded-xl border border-neutral-150/40">
+                            <div className="bg-neutral-50/60 p-3 rounded-xl border border-slate-200/40">
                                 <span className="block text-neutral-400 uppercase text-[8px] tracking-wider mb-0.5">Tinggi</span>
                                 <span className="font-mono text-neutral-800 text-xs">{pokemon.height / 10} m</span>
                             </div>
-                            <div className="bg-neutral-50/60 p-3 rounded-xl border border-neutral-150/40">
+                            <div className="bg-neutral-50/60 p-3 rounded-xl border border-slate-200/40">
                                 <span className="block text-neutral-400 uppercase text-[8px] tracking-wider mb-0.5">Berat</span>
                                 <span className="font-mono text-neutral-800 text-xs">{pokemon.weight / 10} kg</span>
                             </div>
@@ -96,10 +96,10 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                 <div key={s.name} className="bg-neutral-50/40 p-3 rounded-xl border border-neutral-200/40 flex items-center justify-between gap-4">
                                     <div className="min-w-[90px]">
                                         <span className="block text-[8px] text-neutral-400 font-bold tracking-wider">{statLabel}</span>
-                                        <span className="font-mono text-xs font-bold text-neutral-850">{s.value}</span>
+                                        <span className="font-mono text-xs font-bold text-slate-700">{s.value}</span>
                                     </div>
                                     <div className="w-full bg-neutral-100 h-1 rounded-full overflow-hidden">
-                                        <div style={{ width: `${percentage}%` }} className="h-full bg-neutral-800 rounded-full"></div>
+                                        <div style={{ width: `${percentage}%` }} className="h-full bg-indigo-600 rounded-full"></div>
                                     </div>
                                 </div>
                             );
@@ -137,7 +137,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
 
                 {/* Bawah: Diagram Evolusi */}
                 {pokemon.evolution && pokemon.evolution.length > 1 && (
-                    <div className="space-y-3 border-t border-neutral-150/60 pt-4">
+                    <div className="space-y-3 border-t border-slate-200/60 pt-4">
                         <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0">Silsilah Evolusi</h3>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 bg-neutral-50/50 p-6 rounded-2xl border border-neutral-200/35">
                             {pokemon.evolution.map((evo, i) => (
@@ -172,9 +172,9 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                 )}
 
                 {/* Bawah: Jurnal Tangkapan Pelatih */}
-                <div className="space-y-4 border-t border-neutral-150/60 pt-6">
+                <div className="space-y-4 border-t border-slate-200/60 pt-6">
                     <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase m-0 flex items-center gap-2">
-                        <svg className="w-3.5 h-3.5 text-neutral-450" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                         </svg>
                         Catatan Jurnal Pelatih
@@ -202,7 +202,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                             </div>
 
                             {existingLog.notes && (
-                                <div className="p-3 bg-white border border-neutral-150/40 rounded-xl text-neutral-500 text-[10px] leading-relaxed italic">
+                                <div className="p-3 bg-white border border-slate-200/40 rounded-xl text-neutral-500 text-[10px] leading-relaxed italic">
                                     "{existingLog.notes}"
                                 </div>
                             )}
@@ -210,7 +210,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                             <div className="flex gap-2 justify-end">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200/60 text-neutral-850 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border-0"
+                                    className="px-3 py-1.5 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-[#e9ebf0]"
                                 >
                                     Ubah Catatan
                                 </button>
@@ -241,7 +241,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         type="date"
                                         value={form.date}
                                         onChange={(e) => setForm({ ...form, date: e.target.value })}
-                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                                 <div>
@@ -251,7 +251,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         value={form.location}
                                         onChange={(e) => setForm({ ...form, location: e.target.value })}
                                         placeholder="cth: Rute 1"
-                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                             </div>
@@ -265,7 +265,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         max="100"
                                         value={form.level}
                                         onChange={(e) => setForm({ ...form, level: parseInt(e.target.value, 10) || 5 })}
-                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                                 <div>
@@ -273,7 +273,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                     <select
                                         value={form.nature}
                                         onChange={(e) => setForm({ ...form, nature: e.target.value })}
-                                        className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 box-border"
+                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     >
                                         {natures.map(n => <option key={n} value={n}>{n}</option>)}
                                     </select>
@@ -287,7 +287,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                     value={form.notes}
                                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                                     placeholder="Masukkan cerita petualangan saat menangkap..."
-                                    className="w-full bg-white border border-neutral-250/60 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 resize-none box-border"
+                                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none box-border"
                                 />
                             </div>
 
@@ -304,7 +304,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                             });
                                             setIsEditing(false);
                                         }}
-                                        className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200/60 text-neutral-500 hover:text-neutral-850 text-[9px] font-bold rounded-lg cursor-pointer border-0 transition-colors"
+                                        className="px-3.5 py-2 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer border border-[#e9ebf0] transition-colors"
                                     >
                                         Batal
                                     </button>
@@ -327,7 +327,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                             });
                                         }
                                     }}
-                                    className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-[9px] font-bold rounded-lg cursor-pointer border-0 transition-colors"
+                                    className="px-4 py-2 bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 text-white text-[9px] font-bold rounded-lg cursor-pointer border-0 transition-all shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
                                 >
                                     {existingLog ? 'Simpan Perubahan' : 'Tambah Catatan'}
                                 </button>
