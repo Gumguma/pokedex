@@ -34,47 +34,47 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
     ];
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-neutral-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.01)] text-left">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] text-left">
             <div className="max-w-2xl mx-auto mb-10 text-center">
-                <h2 className="text-xl font-extrabold text-neutral-900 mb-2 m-0">
+                <h2 className="text-xl font-extrabold text-indigo-700 mb-2 m-0">
                     Jurnal Catatan Petualangan
                 </h2>
-                <p className="text-neutral-450 text-xs leading-relaxed m-0 font-medium">
+                <p className="text-slate-400 text-xs leading-relaxed m-0 font-medium">
                     Histori petualangan dan riwayat tangkapan unik Pokémon Anda di dunia luar.
                 </p>
             </div>
 
             {journalLogs.length === 0 ? (
-                <div className="py-16 text-center border border-dashed border-neutral-200 rounded-2xl bg-neutral-50/40">
-                    <p className="text-neutral-400 text-xs font-bold m-0">Jurnal petualangan Anda masih kosong.</p>
-                    <p className="text-[10px] text-neutral-300 mt-1 m-0 font-bold">
+                <div className="py-16 text-center border border-dashed border-[#e9ebf0] rounded-2xl bg-[#f6f7fb]">
+                    <p className="text-slate-400 text-xs font-bold m-0">Jurnal petualangan Anda masih kosong.</p>
+                    <p className="text-[10px] text-slate-300 mt-1 m-0 font-bold">
                         Buka detail Pokémon dari tab **Jelajah** dan tambahkan catatan tangkapan pertama Anda!
                     </p>
                 </div>
             ) : (
-                <div className="max-w-xl mx-auto relative pl-6 border-l-2 border-neutral-100 space-y-10 py-2">
+                <div className="max-w-xl mx-auto relative pl-6 border-l-2 border-indigo-100 space-y-10 py-2">
                     {journalLogs.map((log) => {
                         const isEditing = editingId === log.id;
 
                         return (
                             <div key={log.id} className="relative">
                                 {/* Bullet Node */}
-                                <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-neutral-900 border-4 border-white shadow-sm flex items-center justify-center"></div>
+                                <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-sm flex items-center justify-center"></div>
 
                                 {/* Card Jurnal */}
-                                <div className="bg-neutral-50/40 border border-neutral-200/50 rounded-2xl p-5 hover:shadow-sm transition-all space-y-4">
+                                <div className="bg-white border border-[#e9ebf0] rounded-2xl p-5 hover:shadow-sm transition-all space-y-4">
                                     
                                     {/* Header: Info Pokémon */}
-                                    <div className="flex items-center justify-between gap-4 pb-3 border-b border-neutral-100">
+                                    <div className="flex items-center justify-between gap-4 pb-3 border-b border-[#f2f4f7]">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-neutral-200/60 flex items-center justify-center">
+                                            <div className="w-10 h-10 rounded-xl bg-[#f6f7fb] border border-[#e9ebf0] flex items-center justify-center">
                                                 <img src={log.pokemonSprite} alt={log.pokemonName} className="w-8 h-8 object-contain" />
                                             </div>
                                             <div>
-                                                <h4 className="text-xs font-bold capitalize text-neutral-800 m-0 leading-tight">
+                                                <h4 className="text-xs font-bold capitalize text-slate-800 m-0 leading-tight">
                                                     {log.pokemonName}
                                                 </h4>
-                                                <span className="font-mono text-[8px] text-neutral-400 font-bold uppercase tracking-wider">
+                                                <span className="font-mono text-[8px] text-slate-400 font-bold uppercase tracking-wider">
                                                     #{String(log.pokemonId).padStart(3, '0')}
                                                 </span>
                                             </div>
@@ -84,13 +84,13 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleStartEdit(log)}
-                                                    className="text-[9px] font-bold text-neutral-400 hover:text-neutral-800 transition-colors bg-transparent border-0 cursor-pointer"
+                                                    className="text-[9px] font-bold text-slate-400 hover:text-indigo-700 transition-colors bg-transparent border-0 cursor-pointer"
                                                 >
                                                     Ubah
                                                 </button>
                                                 <button
                                                     onClick={() => onDeleteJournal(log.id)}
-                                                    className="text-[9px] font-bold text-neutral-400 hover:text-red-650 transition-colors bg-transparent border-0 cursor-pointer"
+                                                    className="text-[9px] font-bold text-slate-400 hover:text-rose-600 transition-colors bg-transparent border-0 cursor-pointer"
                                                 >
                                                     Hapus
                                                 </button>
@@ -108,7 +108,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         type="date"
                                                         value={editForm.date}
                                                         onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                                                        className="w-full bg-white border border-neutral-200 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800"
+                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                                 <div>
@@ -118,7 +118,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         value={editForm.location}
                                                         onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                                                         placeholder="cth: Rute 1"
-                                                        className="w-full bg-white border border-neutral-200 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800"
+                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                             </div>
@@ -132,7 +132,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         max="100"
                                                         value={editForm.level}
                                                         onChange={(e) => setEditForm({ ...editForm, level: parseInt(e.target.value, 10) || 5 })}
-                                                        className="w-full bg-white border border-neutral-200 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800"
+                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                                 <div>
@@ -140,7 +140,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                     <select
                                                         value={editForm.nature}
                                                         onChange={(e) => setEditForm({ ...editForm, nature: e.target.value })}
-                                                        className="w-full bg-white border border-neutral-200 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800"
+                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     >
                                                         {natures.map(n => <option key={n} value={n}>{n}</option>)}
                                                     </select>
@@ -153,20 +153,20 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                     rows="2"
                                                     value={editForm.notes}
                                                     onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                                                    className="w-full bg-white border border-neutral-200 rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-neutral-800 text-neutral-800 resize-none"
+                                                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none"
                                                 />
                                             </div>
 
                                             <div className="flex gap-2 justify-end pt-1">
                                                 <button
                                                     onClick={() => setEditingId(null)}
-                                                    className="px-3 py-1.5 bg-neutral-100 text-neutral-500 hover:text-neutral-800 text-[9px] font-bold rounded-lg cursor-pointer transition-colors"
+                                                    className="px-3 py-1.5 bg-white text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-[#e9ebf0]"
                                                 >
                                                     Batal
                                                 </button>
                                                 <button
                                                     onClick={() => handleSave(log.id)}
-                                                    className="px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 text-[9px] font-bold rounded-lg cursor-pointer transition-colors"
+                                                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-700 to-violet-600 text-white hover:opacity-95 text-[9px] font-bold rounded-lg cursor-pointer transition-all"
                                                 >
                                                     Simpan
                                                 </button>
@@ -175,28 +175,28 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                     ) : (
                                         <div className="space-y-3.5">
                                             {/* Baris Meta Tangkapan */}
-                                            <div className="grid grid-cols-2 gap-3 text-[9px] font-bold text-neutral-500">
+                                            <div className="grid grid-cols-2 gap-3 text-[9px] font-bold text-slate-500">
                                                 <div>
-                                                    <span className="block text-[7px] text-neutral-400 uppercase">Tanggal Tangkapan</span>
-                                                    <span className="text-neutral-700">{log.date || 'Tidak Diketahui'}</span>
+                                                    <span className="block text-[7px] text-slate-400 uppercase">Tanggal Tangkapan</span>
+                                                    <span className="text-slate-700">{log.date || 'Tidak Diketahui'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="block text-[7px] text-neutral-400 uppercase">Lokasi Menangkap</span>
-                                                    <span className="text-neutral-700 capitalize">{log.location}</span>
+                                                    <span className="block text-[7px] text-slate-400 uppercase">Lokasi Menangkap</span>
+                                                    <span className="text-slate-700 capitalize">{log.location}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="block text-[7px] text-neutral-400 uppercase">Level</span>
-                                                    <span className="text-neutral-700 font-mono">Lv. {log.level}</span>
+                                                    <span className="block text-[7px] text-slate-400 uppercase">Level</span>
+                                                    <span className="text-slate-700 font-mono">Lv. {log.level}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="block text-[7px] text-neutral-400 uppercase">Nature</span>
-                                                    <span className="text-neutral-700">{log.nature || 'Normal'}</span>
+                                                    <span className="block text-[7px] text-slate-400 uppercase">Nature</span>
+                                                    <span className="text-slate-700">{log.nature || 'Normal'}</span>
                                                 </div>
                                             </div>
 
                                             {/* Catatan Personal */}
                                             {log.notes && (
-                                                <div className="p-3 bg-white border border-neutral-150/40 rounded-xl text-neutral-500 text-[10px] leading-relaxed italic">
+                                                <div className="p-3 bg-white border border-slate-200/60 rounded-xl text-slate-500 text-[10px] leading-relaxed italic">
                                                     "{log.notes}"
                                                 </div>
                                             )}
