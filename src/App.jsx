@@ -464,7 +464,7 @@ export default function App() {
         journalCount={journalLogs.length}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {apiError && (
           <div className="mb-6 p-4 rounded-xl bg-neutral-900 border border-neutral-950 text-white text-xs flex justify-between items-center shadow-sm">
@@ -477,7 +477,7 @@ export default function App() {
         {(activeTab === 'explore' || activeTab === 'favorites') && (
           <>
             {/* Filters */}
-            <div className="bg-white p-6 rounded-2xl border border-line flex flex-col gap-5 mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
+            <div className="bg-white p-4 sm:p-6 rounded-3xl border border-line flex flex-col gap-4 sm:gap-5 mb-6 sm:mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
               <div className="flex flex-col md:flex-row items-center gap-3">
                 <input
                   type="text"
@@ -489,19 +489,19 @@ export default function App() {
                 <button
                   onClick={() => handleLiveSearch(searchTerm)}
                   disabled={loading || !searchTerm.trim()}
-                  className="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 disabled:opacity-40 text-white font-bold text-xs transition-all whitespace-nowrap cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
+                  className="w-full md:w-auto min-h-12 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 disabled:opacity-40 text-white font-bold text-xs transition-all whitespace-nowrap cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
                 >
                   Tembak PokéAPI Live
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">Tipe Elemen</label>
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-3 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Tipe</option>
                     {Object.entries(TYPE_DETAILS).filter(([key]) => key !== 'legendary' && key !== 'mythical').map(([key, val]) => (
@@ -516,7 +516,7 @@ export default function App() {
                     disabled={activeTab === 'favorites'}
                     value={selectedGen}
                     onChange={(e) => setSelectedGen(e.target.value)}
-                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white disabled:opacity-50"
+                    className="w-full bg-canvas border border-line py-3 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white disabled:opacity-50"
                   >
                     {Object.entries(GENERATIONS).map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
@@ -529,7 +529,7 @@ export default function App() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-3 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Kategori</option>
                     <option value="legendary">Hanya Legendary</option>
@@ -542,7 +542,7 @@ export default function App() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-3 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="id_asc">ID (Terkecil)</option>
                     <option value="id_desc">ID (Terbesar)</option>
@@ -554,7 +554,7 @@ export default function App() {
             </div>
 
             {/* Grid Card List */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {loading && processedPokemon.length === 0 ? (
                 <PokemonCardSkeleton count={8} />
               ) : (

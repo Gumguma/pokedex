@@ -10,7 +10,7 @@ export default function QuizGame({
     onNextRound
 }) {
     return (
-        <div className="max-w-xl mx-auto bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-center">
+        <div className="max-w-xl mx-auto bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-center">
 
             {/* Papan Skor */}
             <div className="flex justify-between items-center mb-8 border-b border-line-soft pb-4">

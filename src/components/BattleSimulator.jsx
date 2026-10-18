@@ -347,7 +347,7 @@ export default function BattleSimulator({ teams }) {
     }, [battleState, battleQueue, simulationSpeed, generateQueue, executeAction]);
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
             
             {/* 1. SELECTION SCREEN (IDLE STATE) */}
             {battleState === 'idle' && (
@@ -361,7 +361,7 @@ export default function BattleSimulator({ teams }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Player Team Selection */}
-                        <div className="bg-canvas/60 p-6 rounded-2xl border border-line space-y-4">
+                        <div className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
                             <div>
                                 <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 1 (PLAYER)</label>
                                 <select
@@ -379,7 +379,7 @@ export default function BattleSimulator({ teams }) {
                             {team1 ? (
                                 <div className="space-y-3">
                                     <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1</span>
-                                    <div className="grid grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {team1.members.map(m => (
                                             <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
                                                 <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
@@ -395,7 +395,7 @@ export default function BattleSimulator({ teams }) {
                         </div>
 
                         {/* Opponent Team Selection */}
-                        <div className="bg-canvas/60 p-6 rounded-2xl border border-line space-y-4">
+                        <div className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
                             <div>
                                 <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 2 (LAWAN / KOMPUTER)</label>
                                 <select
@@ -413,7 +413,7 @@ export default function BattleSimulator({ teams }) {
                             {team2 ? (
                                 <div className="space-y-3">
                                     <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 2</span>
-                                    <div className="grid grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {team2.members.map(m => (
                                             <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
                                                 <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />

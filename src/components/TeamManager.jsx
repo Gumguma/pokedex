@@ -19,7 +19,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
     };
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)]">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)]">
             <div className="max-w-2xl mx-auto mb-10 text-center">
                 <h2 className="text-xl font-extrabold text-indigo-700 mb-2 m-0">
                     Manajer Tim Tempur
@@ -120,7 +120,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                 </div>
 
                                 {/* Anggota Grid (6 Slot Taktis) */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
                                     {slots.map((member, idx) => {
                                         if (member) {
                                             return (
@@ -153,7 +153,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                 {count > 0 && (
                                     <div className="bg-canvas/50 p-4 rounded-xl border border-line text-[10px] space-y-3.5">
                                         <span className="block font-bold tracking-wider text-slate-400 uppercase text-[9px]">Kekuatan Rata-rata Statistik Tim</span>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                                             {Object.entries(avgStats).map(([name, val]) => (
                                                 <div key={name} className="bg-white p-3 rounded-xl border border-line text-center">
                                                     <span className="block text-slate-400 font-bold uppercase text-[8px] truncate">{name}</span>

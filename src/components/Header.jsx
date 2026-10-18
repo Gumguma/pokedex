@@ -1,7 +1,7 @@
 
 export default function Header({ activeTab, setActiveTab, favoritesCount, compareCount, teamsCount, journalCount }) {
     return (
-        <header className="sticky top-0 z-40 bg-gradient-to-r from-indigo-700 via-violet-700 to-violet-600 px-6 py-4 shadow-lg shadow-indigo-900/20">
+        <header className="sticky top-0 z-40 bg-gradient-to-r from-indigo-700 via-violet-700 to-violet-600 px-4 sm:px-6 py-3 sm:py-4 shadow-lg shadow-indigo-900/20">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
 
                 {/* Identitas Brand */}
@@ -23,10 +23,10 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
                 </div>
 
                 {/* Tab Navigasi */}
-                <nav className="flex items-center gap-1 bg-white/13 p-1 rounded-[13px] overflow-x-auto max-w-full scrollbar-none">
+                <nav className="flex items-center gap-1 bg-white/10 p-1 rounded-[14px] overflow-x-auto max-w-full scrollbar-none snap-x snap-mandatory">
                     <button
                         onClick={() => setActiveTab('explore')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'explore'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'explore'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -36,7 +36,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('favorites')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'favorites'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'favorites'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -51,7 +51,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('compare')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'compare'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'compare'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -66,7 +66,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('teams')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'teams'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'teams'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -81,7 +81,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('battle')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'battle'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'battle'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -91,7 +91,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('journal')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'journal'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'journal'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}
@@ -106,7 +106,7 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
 
                     <button
                         onClick={() => setActiveTab('game')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'game'
+                        className={`flex min-h-11 snap-start items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap cursor-pointer ${activeTab === 'game'
                                 ? 'bg-white text-indigo-700 shadow-sm'
                                 : 'text-white/80 hover:text-white hover:bg-white/10'
                             }`}

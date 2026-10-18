@@ -34,7 +34,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
     ];
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-left">
+        <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-left">
             <div className="max-w-2xl mx-auto mb-10 text-center">
                 <h2 className="text-xl font-extrabold text-indigo-700 mb-2 m-0">
                     Jurnal Catatan Petualangan
