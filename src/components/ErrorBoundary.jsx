@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component {
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 text-white text-xs font-bold hover:opacity-95 cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
+                className="btn-primary flex-1 py-2.5"
               >
                 Muat Ulang
               </button>

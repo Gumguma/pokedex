@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useModalBehavior } from '../hooks/useModalBehavior';
+import ModalShell from './ModalShell';
 import { TYPE_EFFECTIVENESS } from '../constants/pokemonData';
 import TypeBadge from './TypeBadge';
 import { safeSetItem, safeGetItem, safeRemoveItem } from '../utils/storage';
@@ -139,8 +139,6 @@ export default function BattleSimulator({ teams }) {
         setLogs([]);
         setWinner('');
     };
-
-    useModalBehavior(battleState === 'finished' && !!winner, resetBattle);
 
     // Build the action queue when it is empty
     const generateQueue = useCallback(() => {
@@ -436,7 +434,7 @@ export default function BattleSimulator({ teams }) {
                         <button
                             onClick={startBattle}
                             disabled={!team1Id || !team2Id || team1Id === team2Id || team1?.members?.length === 0 || team2?.members?.length === 0}
-                            className="px-8 py-3.5 bg-gradient-to-r from-indigo-700 to-violet-600 text-white hover:opacity-95 font-bold text-xs rounded-xl shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all uppercase tracking-widest"
+                            className="btn-primary px-8 py-3.5 uppercase tracking-widest disabled:cursor-not-allowed"
                         >
                             {!team1Id || !team2Id
                                 ? 'Pilih Kedua Tim'
@@ -529,7 +527,7 @@ export default function BattleSimulator({ teams }) {
                             {battleState === 'paused' && (
                                 <button
                                     onClick={() => setBattleState('running')}
-                                    className="px-4 py-2 bg-gradient-to-r from-indigo-700 to-violet-600 text-white hover:opacity-95 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all"
+                                    className="btn-primary px-4 py-2 text-[9px] uppercase tracking-wider"
                                 >
                                     Resume
                                 </button>
@@ -719,8 +717,7 @@ export default function BattleSimulator({ teams }) {
 
             {/* 3. OVERLAY WINNER MODAL */}
             {battleState === 'finished' && winner && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/20 backdrop-blur-md animate-fade-in" onClick={(e) => { if (e.target === e.currentTarget) resetBattle(); }}>
-                    <div role="dialog" aria-modal="true" aria-label="Hasil pertandingan" className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-2xl max-w-sm w-full text-center space-y-6 animate-scale-in">
+                <ModalShell onClose={resetBattle} label="Hasil pertandingan" panelClassName="max-w-sm p-5 sm:p-8 text-center space-y-6">
                         <div className="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
                             <span className="text-2xl">🏆</span>
                         </div>
@@ -738,19 +735,18 @@ export default function BattleSimulator({ teams }) {
                         <div className="flex gap-2.5">
                             <button
                                 onClick={startBattle}
-                                className="w-full py-3 bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 text-white font-bold text-xs rounded-xl cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)] transition-all uppercase tracking-wider"
+                                className="btn-primary w-full uppercase tracking-wider"
                             >
                                 Tanding Ulang
                             </button>
                             <button
                                 onClick={resetBattle}
-                                className="w-full py-3 border border-line hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-neutral-800 font-bold text-xs rounded-xl cursor-pointer shadow-sm transition-colors uppercase tracking-wider"
+                                className="btn-secondary w-full uppercase tracking-wider"
                             >
                                 Reset Arena
                             </button>
                         </div>
-                    </div>
-                </div>
+                </ModalShell>
             )}
         </div>
     );

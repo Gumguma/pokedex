@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import JournalForm from './JournalForm';
 
 export default function JournalTimeline({ journalLogs, onUpdateJournal, onDeleteJournal }) {
     const [editingId, setEditingId] = useState(null);
@@ -100,77 +101,14 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
 
                                     {/* Content Area */}
                                     {isEditing ? (
-                                        <div className="space-y-3.5 pt-1">
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Tanggal</label>
-                                                    <input
-                                                        type="date"
-                                                        value={editForm.date}
-                                                        onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Lokasi</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editForm.location}
-                                                        onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                                        placeholder="cth: Rute 1"
-                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Level</label>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        max="100"
-                                                        value={editForm.level}
-                                                        onChange={(e) => setEditForm({ ...editForm, level: parseInt(e.target.value, 10) || 5 })}
-                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Sifat (Nature)</label>
-                                                    <select
-                                                        value={editForm.nature}
-                                                        onChange={(e) => setEditForm({ ...editForm, nature: e.target.value })}
-                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
-                                                    >
-                                                        {natures.map(n => <option key={n} value={n}>{n}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-[8px] font-bold text-neutral-400 uppercase mb-1">Catatan</label>
-                                                <textarea
-                                                    rows="2"
-                                                    value={editForm.notes}
-                                                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                                                    className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none"
-                                                />
-                                            </div>
-
-                                            <div className="flex gap-2 justify-end pt-1">
-                                                <button
-                                                    onClick={() => setEditingId(null)}
-                                                    className="px-3 py-1.5 bg-white text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-line"
-                                                >
-                                                    Batal
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSave(log.id)}
-                                                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-700 to-violet-600 text-white hover:opacity-95 text-[9px] font-bold rounded-lg cursor-pointer transition-all"
-                                                >
-                                                    Simpan
-                                                </button>
-                                            </div>
+                                        <div className="pt-1">
+                                            <JournalForm
+                                                form={editForm}
+                                                setForm={setEditForm}
+                                                natures={natures}
+                                                onSave={() => handleSave(log.id)}
+                                                onCancel={() => setEditingId(null)}
+                                            />
                                         </div>
                                     ) : (
                                         <div className="space-y-3.5">

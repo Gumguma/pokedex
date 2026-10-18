@@ -40,7 +40,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                 />
                 <button
                     type="submit"
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 text-white font-bold text-xs whitespace-nowrap transition-all cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
+                    className="btn-primary whitespace-nowrap"
                 >
                     Buat Tim
                 </button>
@@ -90,7 +90,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                                 />
                                                 <button
                                                     onClick={() => handleSaveRename(team.id)}
-                                                    className="px-3 py-1 bg-gradient-to-r from-indigo-700 to-violet-600 text-white text-[10px] font-bold rounded-lg cursor-pointer"
+                                                    className="btn-primary px-3 py-1 text-[10px] rounded-lg"
                                                 >
                                                     Simpan
                                                 </button>

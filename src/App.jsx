@@ -9,7 +9,7 @@ import JournalTimeline from './components/JournalTimeline';
 import TypeBadge from './components/TypeBadge';
 import BattleSimulator from './components/BattleSimulator';
 import EmptyState from './components/EmptyState';
-import { useModalBehavior } from './hooks/useModalBehavior';
+import ModalShell from './components/ModalShell';
 
 import { GENERATIONS, TYPE_DETAILS, LEGENDARY_IDS, MYTHICAL_IDS } from './constants/pokemonData';
 import { playPokemonCry, cleanupAudio } from './utils/audioHelper';
@@ -455,8 +455,6 @@ export default function App() {
     setSelectedPokemonToTeam(null);
   }, []);
 
-  useModalBehavior(showTeamSelector && !!selectedPokemonToTeam, closeTeamSelector);
-
   const resetFilters = useCallback(() => {
     setSearchTerm('');
     setSelectedType('all');
@@ -506,7 +504,7 @@ export default function App() {
                 <button
                   onClick={() => handleLiveSearch(searchTerm)}
                   disabled={loading || !searchTerm.trim()}
-                  className="w-full md:w-auto min-h-12 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 disabled:opacity-40 text-white font-bold text-xs transition-all whitespace-nowrap cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
+                  className="btn-primary w-full md:w-auto min-h-12 whitespace-nowrap"
                 >
                   Tembak PokéAPI Live
                 </button>
@@ -820,11 +818,7 @@ export default function App() {
 
       {/* OVERLAY: Add to Team Select Modal */}
       {showTeamSelector && selectedPokemonToTeam && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20 animate-fade-in"
-          onClick={(e) => { if (e.target === e.currentTarget) closeTeamSelector(); }}
-        >
-          <div role="dialog" aria-modal="true" aria-label="Tambahkan ke Tim" className="bg-white rounded-3xl border border-line p-5 sm:p-8 max-w-sm w-full space-y-5 shadow-2xl animate-scale-in">
+        <ModalShell onClose={closeTeamSelector} label="Tambahkan ke Tim" panelClassName="max-w-sm p-5 sm:p-8 space-y-5">
             <h3 className="text-sm font-extrabold text-neutral-900 m-0">Tambahkan ke Tim</h3>
             <p className="text-neutral-400 text-xs m-0">Pilih slot tim untuk memasukkan <strong className="capitalize text-neutral-600">{selectedPokemonToTeam.name}</strong>:</p>
 
@@ -852,8 +846,7 @@ export default function App() {
             >
               Batal
             </button>
-          </div>
-        </div>
+        </ModalShell>
       )}
 
       {/* MODAL DETAIL */}

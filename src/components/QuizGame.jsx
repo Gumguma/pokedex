@@ -93,7 +93,7 @@ export default function QuizGame({
                     {gameResult !== null && (
                         <button
                             onClick={onNextRound}
-                            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 hover:opacity-95 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)]"
+                            className="btn-primary w-full py-3.5 uppercase tracking-wider"
                         >
                             Ronde Berikutnya →
                         </button>
