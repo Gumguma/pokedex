@@ -75,7 +75,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                         }
 
                         return (
-                            <div key={team.id} className="border border-line rounded-2xl p-6 bg-white shadow-sm space-y-6">
+                            <div key={team.id} className="border border-line rounded-2xl p-4 sm:p-6 bg-white shadow-sm space-y-4 sm:space-y-6">
 
                                 {/* Header Slot (Update Name & Delete Team) */}
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-line-soft pb-4 gap-3">

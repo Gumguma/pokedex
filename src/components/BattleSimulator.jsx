@@ -359,7 +359,7 @@ export default function BattleSimulator({ teams }) {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                         {/* Player Team Selection */}
                         <div className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
                             <div>
@@ -542,7 +542,7 @@ export default function BattleSimulator({ teams }) {
                     </div>
 
                     {/* Arena visual card Pokémon */}
-                    <div className="grid grid-cols-1 md:grid-cols-7 gap-6 items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-7 gap-5 sm:gap-6 items-center">
                         
                         {/* Tim 1 Active Pokemon Card */}
                         <div className="md:col-span-3">
@@ -552,7 +552,7 @@ export default function BattleSimulator({ teams }) {
                                 const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
                                 return (
                                     <div 
-                                        className={`bg-canvas/60 p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
+                                        className={`bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[240px] sm:min-h-[300px] transition-all duration-300 ${
                                             animating1 ? 'translate-x-10 scale-105 rotate-2 z-10' : ''
                                         } ${hit1 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
                                     >
@@ -598,7 +598,7 @@ export default function BattleSimulator({ teams }) {
                                 const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
                                 return (
                                     <div 
-                                        className={`bg-canvas/60 p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
+                                        className={`bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[240px] sm:min-h-[300px] transition-all duration-300 ${
                                             animating2 ? '-translate-x-10 scale-105 -rotate-2 z-10' : ''
                                         } ${hit2 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
                                     >
@@ -633,7 +633,7 @@ export default function BattleSimulator({ teams }) {
                     </div>
 
                     {/* Lineups and HP status grids */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-line-soft pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 border-t border-line-soft pt-6">
                         {/* Tim 1 Lineup */}
                         <div className="space-y-2">
                             <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1 ({team1?.name})</span>

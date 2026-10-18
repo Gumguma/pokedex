@@ -593,14 +593,14 @@ export default function App() {
 
         {/* TAB COMPARISON */}
         {activeTab === 'compare' && (
-          <div className="bg-white p-8 rounded-2xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto">
+          <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-xl font-extrabold text-indigo-700 m-0">Bandingkan Pokémon</h2>
               <p className="text-slate-400 text-xs mt-1 m-0 font-medium">Pilih 2 Pokémon dari tab Jelajah untuk membandingkan statistik mereka.</p>
             </div>
 
             {/* Pokémon Header Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 mb-8 sm:mb-10">
               {[0, 1].map(index => {
                 const p = compareList[index];
                 if (!p) {
@@ -661,7 +661,7 @@ export default function App() {
                         <div className="text-center mb-2">
                           <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider">{statLabel}</span>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
                           {/* Left value */}
                           <span className={`font-mono text-sm font-bold min-w-[36px] text-right ${isWinner1 ? 'text-neutral-900' : isTie ? 'text-neutral-600' : 'text-neutral-400'}`}>
                             {val1}
