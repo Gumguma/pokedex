@@ -8,6 +8,8 @@ import QuizGame from './components/QuizGame';
 import JournalTimeline from './components/JournalTimeline';
 import TypeBadge from './components/TypeBadge';
 import BattleSimulator from './components/BattleSimulator';
+import EmptyState from './components/EmptyState';
+import { useModalBehavior } from './hooks/useModalBehavior';
 
 import { GENERATIONS, TYPE_DETAILS, LEGENDARY_IDS, MYTHICAL_IDS } from './constants/pokemonData';
 import { playPokemonCry, cleanupAudio } from './utils/audioHelper';
@@ -448,6 +450,21 @@ export default function App() {
     return list;
   }, [pokemonList, activeTab, favorites, debouncedSearch, selectedType, selectedCategory, sortBy]);
 
+  const closeTeamSelector = useCallback(() => {
+    setShowTeamSelector(false);
+    setSelectedPokemonToTeam(null);
+  }, []);
+
+  useModalBehavior(showTeamSelector && !!selectedPokemonToTeam, closeTeamSelector);
+
+  const resetFilters = useCallback(() => {
+    setSearchTerm('');
+    setSelectedType('all');
+    setSelectedGen('all');
+    setSelectedCategory('all');
+    setSortBy('id_asc');
+  }, []);
+
   return (
     <div className="min-h-screen bg-canvas text-slate-900 font-sans pb-16">
 
@@ -554,9 +571,39 @@ export default function App() {
             </div>
 
             {/* Grid Card List */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            <p role="status" aria-live="polite" className="mb-3 text-[9px] font-black uppercase tracking-widest text-slate-400 m-0">
+              {loading ? 'Memuat…' : `${processedPokemon.length} Pokémon`}
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6" aria-busy={loading}>
               {loading && processedPokemon.length === 0 ? (
                 <PokemonCardSkeleton count={8} />
+              ) : processedPokemon.length === 0 ? (
+                activeTab === 'favorites' ? (
+                  <EmptyState
+                    title="Belum ada favorit"
+                    description="Tandai Pokémon dengan ikon hati untuk menyimpannya di sini."
+                    actionLabel="Jelajahi Pokémon"
+                    onAction={() => setActiveTab('explore')}
+                    icon={
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                      </svg>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    title="Tidak ada Pokémon yang cocok"
+                    description="Coba ubah kata kunci atau filter yang dipilih."
+                    actionLabel="Reset Filter"
+                    onAction={resetFilters}
+                    icon={
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.6">
+                        <circle cx="11" cy="11" r="7" />
+                        <path strokeLinecap="round" d="m20 20-3.5-3.5" />
+                      </svg>
+                    }
+                  />
+                )
               ) : (
                 processedPokemon.map(p => (
                   <PokemonCard
@@ -773,8 +820,11 @@ export default function App() {
 
       {/* OVERLAY: Add to Team Select Modal */}
       {showTeamSelector && selectedPokemonToTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-          <div className="bg-white rounded-3xl border border-line p-8 max-w-sm w-full space-y-5 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20 animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) closeTeamSelector(); }}
+        >
+          <div role="dialog" aria-modal="true" aria-label="Tambahkan ke Tim" className="bg-white rounded-3xl border border-line p-5 sm:p-8 max-w-sm w-full space-y-5 shadow-2xl animate-scale-in">
             <h3 className="text-sm font-extrabold text-neutral-900 m-0">Tambahkan ke Tim</h3>
             <p className="text-neutral-400 text-xs m-0">Pilih slot tim untuk memasukkan <strong className="capitalize text-neutral-600">{selectedPokemonToTeam.name}</strong>:</p>
 
@@ -785,8 +835,7 @@ export default function App() {
                   onClick={() => {
                     const ok = addPokemonToTeam(team.id, selectedPokemonToTeam);
                     if (ok) {
-                      setShowTeamSelector(false);
-                      setSelectedPokemonToTeam(null);
+                      closeTeamSelector();
                     }
                   }}
                   className="w-full p-3 bg-canvas hover:bg-indigo-50 hover:border-indigo-200 border border-line rounded-xl text-left text-xs font-bold capitalize text-slate-700 transition-all flex justify-between items-center cursor-pointer"
@@ -798,8 +847,8 @@ export default function App() {
             </div>
 
             <button
-              onClick={() => { setShowTeamSelector(false); setSelectedPokemonToTeam(null); }}
-              className="w-full py-3 bg-neutral-100/80 text-neutral-500 hover:text-neutral-800 font-bold text-xs rounded-xl cursor-pointer border-0 transition-colors"
+              onClick={closeTeamSelector}
+              className="w-full min-h-11 py-3 bg-neutral-100/80 text-neutral-500 hover:text-neutral-800 font-bold text-xs rounded-xl cursor-pointer border-0 transition-colors"
             >
               Batal
             </button>

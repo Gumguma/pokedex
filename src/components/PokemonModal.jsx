@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TypeBadge from './TypeBadge';
 import { calculateTypeWeakness } from '../utils/statCalculator';
+import { useModalBehavior } from '../hooks/useModalBehavior';
 
 export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon, cachedDetails, journalLogs = [], onCreateJournal, onUpdateJournal, onDeleteJournal }) {
     const weaknesses = calculateTypeWeakness(pokemon.types);
@@ -32,25 +33,35 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
         'Modest', 'Naive', 'Naughty', 'Quiet', 'Quirky', 'Rash', 'Relaxed', 'Sassy', 'Serious', 'Timid'
     ];
 
+    useModalBehavior(true, onClose);
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-line bg-white text-slate-900 shadow-2xl p-8 flex flex-col gap-8 text-left scrollbar-none">
+        <div
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto backdrop-blur-md bg-neutral-950/20 animate-fade-in"
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Detail ${pokemon.name}`}
+                className="relative w-full max-w-2xl max-h-[85dvh] overflow-y-auto overscroll-contain rounded-3xl border border-line bg-white text-slate-900 shadow-2xl p-5 sm:p-8 flex flex-col gap-6 sm:gap-8 text-left scrollbar-none animate-scale-in"
+            >
 
                 {/* Tombol Keluar */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-xl bg-canvas border border-line text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer"
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 min-h-11 min-w-11 inline-flex items-center justify-center rounded-xl bg-canvas border border-line text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
 
                 {/* Atas: Gambar & Profil Utama */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <div className="relative rounded-2xl bg-neutral-50 border border-slate-200/50 p-8 flex flex-col items-center justify-center min-h-[220px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 items-center">
+                    <div className="relative rounded-2xl bg-neutral-50 border border-slate-200/50 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[180px] sm:min-h-[220px]">
                         <span className="absolute top-4 left-4 font-mono text-[10px] font-bold text-neutral-300">
                             #{String(pokemon.id).padStart(3, '0')}
                         </span>
-                        <img src={pokemon.sprite} alt={pokemon.name} className="w-36 h-36 object-contain filter drop-shadow-md animate-float-hover" />
+                        <img src={pokemon.sprite} alt={pokemon.name} className="w-28 h-28 sm:w-36 sm:h-36 object-contain filter drop-shadow-md animate-float-hover" />
                     </div>
 
                     <div className="space-y-4">

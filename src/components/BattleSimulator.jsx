@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useModalBehavior } from '../hooks/useModalBehavior';
 import { TYPE_EFFECTIVENESS } from '../constants/pokemonData';
 import TypeBadge from './TypeBadge';
 import { safeSetItem, safeGetItem, safeRemoveItem } from '../utils/storage';
@@ -138,6 +139,8 @@ export default function BattleSimulator({ teams }) {
         setLogs([]);
         setWinner('');
     };
+
+    useModalBehavior(battleState === 'finished' && !!winner, resetBattle);
 
     // Build the action queue when it is empty
     const generateQueue = useCallback(() => {
@@ -716,8 +719,8 @@ export default function BattleSimulator({ teams }) {
 
             {/* 3. OVERLAY WINNER MODAL */}
             {battleState === 'finished' && winner && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/20 backdrop-blur-md">
-                    <div className="bg-white p-8 rounded-3xl border border-line shadow-2xl max-w-sm w-full text-center space-y-6 animate-scale-in">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/20 backdrop-blur-md animate-fade-in" onClick={(e) => { if (e.target === e.currentTarget) resetBattle(); }}>
+                    <div role="dialog" aria-modal="true" aria-label="Hasil pertandingan" className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-2xl max-w-sm w-full text-center space-y-6 animate-scale-in">
                         <div className="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
                             <span className="text-2xl">🏆</span>
                         </div>
