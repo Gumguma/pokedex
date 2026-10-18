@@ -17,8 +17,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#f6f7fb] flex items-center justify-center p-6 text-slate-900">
-          <div className="max-w-md w-full bg-white p-8 rounded-3xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] text-center space-y-4">
+        <div className="min-h-screen bg-canvas flex items-center justify-center p-6 text-slate-900">
+          <div className="max-w-md w-full bg-white p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 mx-auto flex items-center justify-center text-xl">
               ⚠️
             </div>
@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
             <div className="pt-2 flex gap-2">
               <button
                 onClick={() => this.setState({ hasError: false, error: null })}
-                className="flex-1 py-2.5 rounded-xl border border-[#e9ebf0] hover:bg-indigo-50 hover:text-indigo-700 text-xs font-bold cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-line hover:bg-indigo-50 hover:text-indigo-700 text-xs font-bold cursor-pointer"
               >
                 Coba Lagi
               </button>

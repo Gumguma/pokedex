@@ -4,7 +4,7 @@ export default function PokemonCardSkeleton({ count = 8 }) {
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={`skeleton-${index}`}
-          className="bg-white rounded-2xl border border-[#e9ebf0] p-4 space-y-4 animate-pulse overflow-hidden"
+          className="bg-white rounded-2xl border border-line p-4 space-y-4 animate-pulse overflow-hidden"
         >
           <div className="flex justify-between items-center">
             <div className="h-3 w-10 bg-neutral-200 rounded"></div>

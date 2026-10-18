@@ -19,7 +19,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
     };
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)]">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)]">
             <div className="max-w-2xl mx-auto mb-10 text-center">
                 <h2 className="text-xl font-extrabold text-indigo-700 mb-2 m-0">
                     Manajer Tim Tempur
@@ -36,7 +36,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                     value={newTeamName}
                     onChange={(e) => setNewTeamName(e.target.value)}
                     placeholder="Tulis nama tim baru... (cth: Tim Kanto)"
-                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] focus:border-indigo-600 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-slate-900 placeholder:text-slate-400"
+                    className="w-full bg-canvas border border-line focus:border-indigo-600 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-slate-900 placeholder:text-slate-400"
                 />
                 <button
                     type="submit"
@@ -48,7 +48,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
 
             {/* READ TIM LIST */}
             {teams.length === 0 ? (
-                <div className="py-16 text-center border border-dashed border-[#e9ebf0] rounded-2xl bg-[#f6f7fb]/40">
+                <div className="py-16 text-center border border-dashed border-line rounded-2xl bg-canvas/40">
                     <p className="text-slate-400 text-xs font-bold m-0">Belum ada tim yang dibuat.</p>
                     <p className="text-[10px] text-slate-300 mt-1 m-0 font-bold">Buat tim melalui form di atas, lalu isi Pokémon dari menu Jelajah.</p>
                 </div>
@@ -75,10 +75,10 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                         }
 
                         return (
-                            <div key={team.id} className="border border-[#e9ebf0] rounded-2xl p-6 bg-white shadow-sm space-y-6">
+                            <div key={team.id} className="border border-line rounded-2xl p-6 bg-white shadow-sm space-y-6">
 
                                 {/* Header Slot (Update Name & Delete Team) */}
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f2f4f7] pb-4 gap-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-line-soft pb-4 gap-3">
                                     <div className="flex items-center gap-3">
                                         {editingId === team.id ? (
                                             <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                                     type="text"
                                                     value={editName}
                                                     onChange={(e) => setEditName(e.target.value)}
-                                                    className="bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg px-3 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                                                    className="bg-canvas border border-line rounded-lg px-3 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-600 focus:bg-white"
                                                 />
                                                 <button
                                                     onClick={() => handleSaveRename(team.id)}
@@ -124,10 +124,10 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                     {slots.map((member, idx) => {
                                         if (member) {
                                             return (
-                                                <div key={member.id} className="relative p-4 bg-[#f6f7fb]/60 border border-[#e9ebf0] rounded-xl flex flex-col items-center justify-center h-28">
+                                                <div key={member.id} className="relative p-4 bg-canvas/60 border border-line rounded-xl flex flex-col items-center justify-center h-28">
                                                     <button
                                                         onClick={() => onRemoveFromTeam(team.id, member.id)}
-                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-[#e9ebf0] text-slate-400 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-bold text-xs shadow-sm cursor-pointer transition-all"
+                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-line text-slate-400 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center font-bold text-xs shadow-sm cursor-pointer transition-all"
                                                         title="Keluarkan Pokémon"
                                                     >
                                                         ×
@@ -139,7 +139,7 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
                                             );
                                         }
                                         return (
-                                            <div key={`empty-${idx}`} className="border border-[#e9ebf0] border-dashed rounded-xl flex flex-col items-center justify-center h-28 bg-[#f6f7fb]/40 text-slate-300">
+                                            <div key={`empty-${idx}`} className="border border-line border-dashed rounded-xl flex flex-col items-center justify-center h-28 bg-canvas/40 text-slate-300">
                                                 <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path>
                                                 </svg>
@@ -151,11 +151,11 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
 
                                 {/* Analisis Statistik Gabungan (Read Analysis) */}
                                 {count > 0 && (
-                                    <div className="bg-[#f6f7fb]/50 p-4 rounded-xl border border-[#e9ebf0] text-[10px] space-y-3.5">
+                                    <div className="bg-canvas/50 p-4 rounded-xl border border-line text-[10px] space-y-3.5">
                                         <span className="block font-bold tracking-wider text-slate-400 uppercase text-[9px]">Kekuatan Rata-rata Statistik Tim</span>
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                                             {Object.entries(avgStats).map(([name, val]) => (
-                                                <div key={name} className="bg-white p-3 rounded-xl border border-[#e9ebf0] text-center">
+                                                <div key={name} className="bg-white p-3 rounded-xl border border-line text-center">
                                                     <span className="block text-slate-400 font-bold uppercase text-[8px] truncate">{name}</span>
                                                     <span className="font-mono text-xs font-bold text-slate-900">{val}</span>
                                                 </div>

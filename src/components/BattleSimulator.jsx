@@ -347,7 +347,7 @@ export default function BattleSimulator({ teams }) {
     }, [battleState, battleQueue, simulationSpeed, generateQueue, executeAction]);
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
             
             {/* 1. SELECTION SCREEN (IDLE STATE) */}
             {battleState === 'idle' && (
@@ -361,13 +361,13 @@ export default function BattleSimulator({ teams }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Player Team Selection */}
-                        <div className="bg-[#f6f7fb]/60 p-6 rounded-2xl border border-[#e9ebf0] space-y-4">
+                        <div className="bg-canvas/60 p-6 rounded-2xl border border-line space-y-4">
                             <div>
                                 <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 1 (PLAYER)</label>
                                 <select
                                     value={team1Id}
                                     onChange={(e) => setTeam1Id(e.target.value)}
-                                    className="w-full bg-white border border-[#e9ebf0] py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
+                                    className="w-full bg-white border border-line py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
                                 >
                                     <option value="">-- Pilih Tim 1 --</option>
                                     {validTeams.map(t => (
@@ -381,27 +381,27 @@ export default function BattleSimulator({ teams }) {
                                     <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1</span>
                                     <div className="grid grid-cols-6 gap-2">
                                         {team1.members.map(m => (
-                                            <div key={m.id} className="aspect-square bg-white border border-[#e9ebf0] rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
+                                            <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
                                                 <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-[#e9ebf0] rounded-xl font-bold bg-white">
+                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-line rounded-xl font-bold bg-white">
                                     Belum memilih Tim 1
                                 </div>
                             )}
                         </div>
 
                         {/* Opponent Team Selection */}
-                        <div className="bg-[#f6f7fb]/60 p-6 rounded-2xl border border-[#e9ebf0] space-y-4">
+                        <div className="bg-canvas/60 p-6 rounded-2xl border border-line space-y-4">
                             <div>
                                 <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 2 (LAWAN / KOMPUTER)</label>
                                 <select
                                     value={team2Id}
                                     onChange={(e) => setTeam2Id(e.target.value)}
-                                    className="w-full bg-white border border-[#e9ebf0] py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
+                                    className="w-full bg-white border border-line py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
                                 >
                                     <option value="">-- Pilih Tim 2 --</option>
                                     {validTeams.map(t => (
@@ -415,14 +415,14 @@ export default function BattleSimulator({ teams }) {
                                     <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 2</span>
                                     <div className="grid grid-cols-6 gap-2">
                                         {team2.members.map(m => (
-                                            <div key={m.id} className="aspect-square bg-white border border-[#e9ebf0] rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
+                                            <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
                                                 <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-[#e9ebf0] rounded-xl font-bold bg-white">
+                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-line rounded-xl font-bold bg-white">
                                     Belum memilih Tim 2
                                 </div>
                             )}
@@ -444,7 +444,7 @@ export default function BattleSimulator({ teams }) {
                     </div>
 
                     {/* RIWAYAT PERTANDINGAN */}
-                    <div className="border-t border-[#e9ebf0] pt-8 mt-8">
+                    <div className="border-t border-line pt-8 mt-8">
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h3 className="text-sm font-black text-neutral-900 uppercase tracking-tight m-0">Riwayat Pertandingan Arena</h3>
@@ -456,7 +456,7 @@ export default function BattleSimulator({ teams }) {
                                         setBattleHistory([]);
                                         safeRemoveItem('pokedex_battle_history');
                                     }}
-                                    className="px-3 py-1.5 border border-[#e9ebf0] hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer text-slate-400"
+                                    className="px-3 py-1.5 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer text-slate-400"
                                 >
                                     ✕ Bersihkan Riwayat
                                 </button>
@@ -464,13 +464,13 @@ export default function BattleSimulator({ teams }) {
                         </div>
 
                         {battleHistory.length === 0 ? (
-                            <div className="py-10 text-center border border-dashed border-[#e9ebf0] rounded-2xl bg-[#f6f7fb]/40 text-neutral-400 text-[10px] font-bold">
+                            <div className="py-10 text-center border border-dashed border-line rounded-2xl bg-canvas/40 text-neutral-400 text-[10px] font-bold">
                                 Belum ada riwayat pertandingan.
                             </div>
                         ) : (
                             <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                                 {battleHistory.map((history) => (
-                                    <div key={history.id} className="bg-[#f6f7fb]/60 border border-[#e9ebf0] p-4 rounded-xl flex items-center justify-between text-[10px] font-bold text-neutral-600 gap-4">
+                                    <div key={history.id} className="bg-canvas/60 border border-line p-4 rounded-xl flex items-center justify-between text-[10px] font-bold text-neutral-600 gap-4">
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-neutral-800">{history.team1Name}</span>
@@ -495,7 +495,7 @@ export default function BattleSimulator({ teams }) {
             {battleState !== 'idle' && (
                 <div className="space-y-8">
                     {/* Header Arena */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#f2f4f7] pb-5">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-line-soft pb-5">
                         <div>
                             <h2 className="text-sm font-black tracking-widest text-neutral-400 uppercase m-0">Arena Tempur Aktif</h2>
                             <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] text-neutral-500 font-bold">
@@ -509,7 +509,7 @@ export default function BattleSimulator({ teams }) {
                         <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={() => setSimulationSpeed(prev => prev === 1200 ? 500 : 1200)}
-                                className="px-3 py-2 border border-[#e9ebf0] hover:bg-indigo-50 hover:text-indigo-700 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-700 font-bold"
+                                className="px-3 py-2 border border-line hover:bg-indigo-50 hover:text-indigo-700 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-700 font-bold"
                             >
                                 Speed: {simulationSpeed === 1200 ? 'Normal (1.2s)' : 'Cepat (0.5s)'}
                             </button>
@@ -517,7 +517,7 @@ export default function BattleSimulator({ teams }) {
                             {battleState === 'running' && (
                                 <button
                                     onClick={() => setBattleState('paused')}
-                                    className="px-4 py-2 bg-[#f6f7fb] hover:bg-indigo-50 border border-[#e9ebf0] hover:border-indigo-200 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-800"
+                                    className="px-4 py-2 bg-canvas hover:bg-indigo-50 border border-line hover:border-indigo-200 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-800"
                                 >
                                     Pause
                                 </button>
@@ -534,7 +534,7 @@ export default function BattleSimulator({ teams }) {
 
                             <button
                                 onClick={resetBattle}
-                                className="px-4 py-2 border border-[#e9ebf0] hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-400"
+                                className="px-4 py-2 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-400"
                             >
                                 Keluar Arena
                             </button>
@@ -552,7 +552,7 @@ export default function BattleSimulator({ teams }) {
                                 const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
                                 return (
                                     <div 
-                                        className={`bg-[#f6f7fb]/60 p-6 rounded-2xl border border-[#e9ebf0] text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
+                                        className={`bg-canvas/60 p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
                                             animating1 ? 'translate-x-10 scale-105 rotate-2 z-10' : ''
                                         } ${hit1 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
                                     >
@@ -578,7 +578,7 @@ export default function BattleSimulator({ teams }) {
                                     </div>
                                 );
                             })() : (
-                                <div className="h-[300px] bg-neutral-50 border border-[#e9ebf0] rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
+                                <div className="h-[300px] bg-neutral-50 border border-line rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
                                     Semua Pokémon pingsan
                                 </div>
                             )}
@@ -598,7 +598,7 @@ export default function BattleSimulator({ teams }) {
                                 const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
                                 return (
                                     <div 
-                                        className={`bg-[#f6f7fb]/60 p-6 rounded-2xl border border-[#e9ebf0] text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
+                                        className={`bg-canvas/60 p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[300px] transition-all duration-300 ${
                                             animating2 ? '-translate-x-10 scale-105 -rotate-2 z-10' : ''
                                         } ${hit2 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
                                     >
@@ -624,7 +624,7 @@ export default function BattleSimulator({ teams }) {
                                     </div>
                                 );
                             })() : (
-                                <div className="h-[300px] bg-neutral-50 border border-[#e9ebf0] rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
+                                <div className="h-[300px] bg-neutral-50 border border-line rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
                                     Semua Pokémon pingsan
                                 </div>
                             )}
@@ -633,7 +633,7 @@ export default function BattleSimulator({ teams }) {
                     </div>
 
                     {/* Lineups and HP status grids */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[#f2f4f7] pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-line-soft pt-6">
                         {/* Tim 1 Lineup */}
                         <div className="space-y-2">
                             <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1 ({team1?.name})</span>
@@ -645,8 +645,8 @@ export default function BattleSimulator({ teams }) {
                                             idx === t1ActiveIdx 
                                                 ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-600/10' 
                                                 : m.currentHp <= 0 
-                                                ? 'opacity-40 grayscale border-slate-300 bg-[#f6f7fb]' 
-                                                : 'bg-white border-[#e9ebf0]'
+                                                ? 'opacity-40 grayscale border-slate-300 bg-canvas' 
+                                                : 'bg-white border-line'
                                         }`}
                                     >
                                         <img src={m.sprite} alt={m.name} className="w-full h-full object-contain" />
@@ -671,8 +671,8 @@ export default function BattleSimulator({ teams }) {
                                             idx === t2ActiveIdx 
                                                 ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-600/10' 
                                                 : m.currentHp <= 0 
-                                                ? 'opacity-40 grayscale border-slate-300 bg-[#f6f7fb]' 
-                                                : 'bg-white border-[#e9ebf0]'
+                                                ? 'opacity-40 grayscale border-slate-300 bg-canvas' 
+                                                : 'bg-white border-line'
                                         }`}
                                     >
                                         <img src={m.sprite} alt={m.name} className="w-full h-full object-contain" />
@@ -688,7 +688,7 @@ export default function BattleSimulator({ teams }) {
                     </div>
 
                     {/* Battle log box */}
-                    <div className="space-y-2 border-t border-[#f2f4f7] pt-6">
+                    <div className="space-y-2 border-t border-line-soft pt-6">
                         <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LOG PERTANDINGAN (BATTLE JOURNAL)</span>
                         <div className="bg-neutral-900 text-neutral-200 p-4 rounded-2xl font-mono text-[9px] h-48 overflow-y-auto border border-neutral-950 shadow-inner flex flex-col gap-1.5 animate-pulse-slow">
                             {logs.map((log, index) => {
@@ -717,7 +717,7 @@ export default function BattleSimulator({ teams }) {
             {/* 3. OVERLAY WINNER MODAL */}
             {battleState === 'finished' && winner && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/20 backdrop-blur-md">
-                    <div className="bg-white p-8 rounded-3xl border border-[#e9ebf0] shadow-2xl max-w-sm w-full text-center space-y-6 animate-scale-in">
+                    <div className="bg-white p-8 rounded-3xl border border-line shadow-2xl max-w-sm w-full text-center space-y-6 animate-scale-in">
                         <div className="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
                             <span className="text-2xl">🏆</span>
                         </div>
@@ -741,7 +741,7 @@ export default function BattleSimulator({ teams }) {
                             </button>
                             <button
                                 onClick={resetBattle}
-                                className="w-full py-3 border border-[#e9ebf0] hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-neutral-800 font-bold text-xs rounded-xl cursor-pointer shadow-sm transition-colors uppercase tracking-wider"
+                                className="w-full py-3 border border-line hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-neutral-800 font-bold text-xs rounded-xl cursor-pointer shadow-sm transition-colors uppercase tracking-wider"
                             >
                                 Reset Arena
                             </button>

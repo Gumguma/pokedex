@@ -34,12 +34,12 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-[#e9ebf0] bg-white text-slate-900 shadow-2xl p-8 flex flex-col gap-8 text-left scrollbar-none">
+            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-line bg-white text-slate-900 shadow-2xl p-8 flex flex-col gap-8 text-left scrollbar-none">
 
                 {/* Tombol Keluar */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-xl bg-[#f6f7fb] border border-[#e9ebf0] text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer"
+                    className="absolute top-6 right-6 p-2 rounded-xl bg-canvas border border-line text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -210,7 +210,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                             <div className="flex gap-2 justify-end">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="px-3 py-1.5 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-[#e9ebf0]"
+                                    className="px-3 py-1.5 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-line"
                                 >
                                     Ubah Catatan
                                 </button>
@@ -241,7 +241,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         type="date"
                                         value={form.date}
                                         onChange={(e) => setForm({ ...form, date: e.target.value })}
-                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
+                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                                 <div>
@@ -251,7 +251,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         value={form.location}
                                         onChange={(e) => setForm({ ...form, location: e.target.value })}
                                         placeholder="cth: Rute 1"
-                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
+                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                             </div>
@@ -265,7 +265,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                         max="100"
                                         value={form.level}
                                         onChange={(e) => setForm({ ...form, level: parseInt(e.target.value, 10) || 5 })}
-                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
+                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     />
                                 </div>
                                 <div>
@@ -273,7 +273,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                     <select
                                         value={form.nature}
                                         onChange={(e) => setForm({ ...form, nature: e.target.value })}
-                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
+                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 box-border"
                                     >
                                         {natures.map(n => <option key={n} value={n}>{n}</option>)}
                                     </select>
@@ -287,7 +287,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                     value={form.notes}
                                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                                     placeholder="Masukkan cerita petualangan saat menangkap..."
-                                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none box-border"
+                                    className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none box-border"
                                 />
                             </div>
 
@@ -304,7 +304,7 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
                                             });
                                             setIsEditing(false);
                                         }}
-                                        className="px-3.5 py-2 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer border border-[#e9ebf0] transition-colors"
+                                        className="px-3.5 py-2 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer border border-line transition-colors"
                                     >
                                         Batal
                                     </button>

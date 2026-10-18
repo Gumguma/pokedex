@@ -34,7 +34,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
     ];
 
     return (
-        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] text-left">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] text-left">
             <div className="max-w-2xl mx-auto mb-10 text-center">
                 <h2 className="text-xl font-extrabold text-indigo-700 mb-2 m-0">
                     Jurnal Catatan Petualangan
@@ -45,7 +45,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
             </div>
 
             {journalLogs.length === 0 ? (
-                <div className="py-16 text-center border border-dashed border-[#e9ebf0] rounded-2xl bg-[#f6f7fb]">
+                <div className="py-16 text-center border border-dashed border-line rounded-2xl bg-canvas">
                     <p className="text-slate-400 text-xs font-bold m-0">Jurnal petualangan Anda masih kosong.</p>
                     <p className="text-[10px] text-slate-300 mt-1 m-0 font-bold">
                         Buka detail Pokémon dari tab **Jelajah** dan tambahkan catatan tangkapan pertama Anda!
@@ -62,12 +62,12 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                 <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-sm flex items-center justify-center"></div>
 
                                 {/* Card Jurnal */}
-                                <div className="bg-white border border-[#e9ebf0] rounded-2xl p-5 hover:shadow-sm transition-all space-y-4">
+                                <div className="bg-white border border-line rounded-2xl p-5 hover:shadow-sm transition-all space-y-4">
                                     
                                     {/* Header: Info Pokémon */}
-                                    <div className="flex items-center justify-between gap-4 pb-3 border-b border-[#f2f4f7]">
+                                    <div className="flex items-center justify-between gap-4 pb-3 border-b border-line-soft">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-[#f6f7fb] border border-[#e9ebf0] flex items-center justify-center">
+                                            <div className="w-10 h-10 rounded-xl bg-canvas border border-line flex items-center justify-center">
                                                 <img src={log.pokemonSprite} alt={log.pokemonName} className="w-8 h-8 object-contain" />
                                             </div>
                                             <div>
@@ -108,7 +108,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         type="date"
                                                         value={editForm.date}
                                                         onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
+                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                                 <div>
@@ -118,7 +118,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         value={editForm.location}
                                                         onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                                                         placeholder="cth: Rute 1"
-                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
+                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                             </div>
@@ -132,7 +132,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                         max="100"
                                                         value={editForm.level}
                                                         onChange={(e) => setEditForm({ ...editForm, level: parseInt(e.target.value, 10) || 5 })}
-                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
+                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     />
                                                 </div>
                                                 <div>
@@ -140,7 +140,7 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                     <select
                                                         value={editForm.nature}
                                                         onChange={(e) => setEditForm({ ...editForm, nature: e.target.value })}
-                                                        className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
+                                                        className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800"
                                                     >
                                                         {natures.map(n => <option key={n} value={n}>{n}</option>)}
                                                     </select>
@@ -153,14 +153,14 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
                                                     rows="2"
                                                     value={editForm.notes}
                                                     onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                                                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none"
+                                                    className="w-full bg-canvas border border-line rounded-lg p-2 text-[10px] font-bold focus:outline-none focus:border-indigo-600 focus:bg-white text-slate-800 resize-none"
                                                 />
                                             </div>
 
                                             <div className="flex gap-2 justify-end pt-1">
                                                 <button
                                                     onClick={() => setEditingId(null)}
-                                                    className="px-3 py-1.5 bg-white text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-[#e9ebf0]"
+                                                    className="px-3 py-1.5 bg-white text-slate-500 hover:text-indigo-700 text-[9px] font-bold rounded-lg cursor-pointer transition-colors border border-line"
                                                 >
                                                     Batal
                                                 </button>

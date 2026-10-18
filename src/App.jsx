@@ -449,7 +449,7 @@ export default function App() {
   }, [pokemonList, activeTab, favorites, debouncedSearch, selectedType, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#f6f7fb] text-slate-900 font-sans pb-16">
+    <div className="min-h-screen bg-canvas text-slate-900 font-sans pb-16">
 
       {modalLoading && (
         <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-700 to-violet-600 animate-pulse z-50"></div>
@@ -477,14 +477,14 @@ export default function App() {
         {(activeTab === 'explore' || activeTab === 'favorites') && (
           <>
             {/* Filters */}
-            <div className="bg-white p-6 rounded-2xl border border-[#e9ebf0] flex flex-col gap-5 mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
+            <div className="bg-white p-6 rounded-2xl border border-line flex flex-col gap-5 mb-8 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
               <div className="flex flex-col md:flex-row items-center gap-3">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Cari Pokémon (cth: '25' atau 'Ditto')..."
-                  className="w-full bg-[#f6f7fb] border border-[#e9ebf0] focus:border-indigo-600 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-slate-900 placeholder:text-slate-400"
+                  className="w-full bg-canvas border border-line focus:border-indigo-600 focus:bg-white focus:outline-none transition-all rounded-xl py-3 px-4 text-xs font-bold text-slate-900 placeholder:text-slate-400"
                 />
                 <button
                   onClick={() => handleLiveSearch(searchTerm)}
@@ -501,7 +501,7 @@ export default function App() {
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Tipe</option>
                     {Object.entries(TYPE_DETAILS).filter(([key]) => key !== 'legendary' && key !== 'mythical').map(([key, val]) => (
@@ -516,7 +516,7 @@ export default function App() {
                     disabled={activeTab === 'favorites'}
                     value={selectedGen}
                     onChange={(e) => setSelectedGen(e.target.value)}
-                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white disabled:opacity-50"
+                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white disabled:opacity-50"
                   >
                     {Object.entries(GENERATIONS).map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
@@ -529,7 +529,7 @@ export default function App() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="all">Semua Kategori</option>
                     <option value="legendary">Hanya Legendary</option>
@@ -542,7 +542,7 @@ export default function App() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-[#f6f7fb] border border-[#e9ebf0] py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                    className="w-full bg-canvas border border-line py-2.5 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white"
                   >
                     <option value="id_asc">ID (Terkecil)</option>
                     <option value="id_desc">ID (Terbesar)</option>
@@ -582,7 +582,7 @@ export default function App() {
                 <button
                   onClick={() => fetchPokemonBatch(false)}
                   disabled={loading}
-                  className="px-6 py-3.5 rounded-xl bg-white border border-[#e9ebf0] hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="px-6 py-3.5 rounded-xl bg-white border border-line hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-sm"
                 >
                   {loading ? 'Sedang Memuat...' : 'Muat Lebih Banyak'}
                 </button>
@@ -593,7 +593,7 @@ export default function App() {
 
         {/* TAB COMPARISON */}
         {activeTab === 'compare' && (
-          <div className="bg-white p-8 rounded-2xl border border-[#e9ebf0] shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto">
+          <div className="bg-white p-8 rounded-2xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-xl font-extrabold text-indigo-700 m-0">Bandingkan Pokémon</h2>
               <p className="text-slate-400 text-xs mt-1 m-0 font-medium">Pilih 2 Pokémon dari tab Jelajah untuk membandingkan statistik mereka.</p>
@@ -605,15 +605,15 @@ export default function App() {
                 const p = compareList[index];
                 if (!p) {
                   return (
-                    <div key={index} className="h-52 border-2 border-dashed border-[#e9ebf0] rounded-2xl flex flex-col items-center justify-center text-xs text-slate-400 font-bold bg-[#f6f7fb]/40 gap-2">
+                    <div key={index} className="h-52 border-2 border-dashed border-line rounded-2xl flex flex-col items-center justify-center text-xs text-slate-400 font-bold bg-canvas/40 gap-2">
                       <svg className="w-8 h-8 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                       Pilih Pokémon ke-{index + 1}
                     </div>
                   );
                 }
                 return (
-                  <div key={p.id} className="p-6 bg-[#f6f7fb]/60 rounded-2xl border border-[#e9ebf0] text-center relative">
-                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 font-bold text-[9px] cursor-pointer transition-all border border-[#e9ebf0]">✕ Hapus</button>
+                  <div key={p.id} className="p-6 bg-canvas/60 rounded-2xl border border-line text-center relative">
+                    <button onClick={() => handleToggleCompare(p)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 font-bold text-[9px] cursor-pointer transition-all border border-line">✕ Hapus</button>
                     <img src={p.sprite} alt={p.name} className="w-24 h-24 mx-auto animate-float-hover" />
                     <h3 className="capitalize font-extrabold text-base text-neutral-900 mt-3 m-0">{p.name}</h3>
                     <span className="font-mono text-[9px] text-neutral-400 font-bold">#{String(p.id).padStart(3, '0')}</span>
@@ -657,7 +657,7 @@ export default function App() {
                     const statLabel = s.name.toUpperCase().replace('-', ' ');
 
                     return (
-                      <div key={s.name} className="bg-[#f6f7fb]/50 rounded-xl border border-[#e9ebf0] p-4">
+                      <div key={s.name} className="bg-canvas/50 rounded-xl border border-line p-4">
                         <div className="text-center mb-2">
                           <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-wider">{statLabel}</span>
                         </div>
@@ -774,7 +774,7 @@ export default function App() {
       {/* OVERLAY: Add to Team Select Modal */}
       {showTeamSelector && selectedPokemonToTeam && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-neutral-950/20">
-          <div className="bg-white rounded-3xl border border-[#e9ebf0] p-8 max-w-sm w-full space-y-5 shadow-2xl">
+          <div className="bg-white rounded-3xl border border-line p-8 max-w-sm w-full space-y-5 shadow-2xl">
             <h3 className="text-sm font-extrabold text-neutral-900 m-0">Tambahkan ke Tim</h3>
             <p className="text-neutral-400 text-xs m-0">Pilih slot tim untuk memasukkan <strong className="capitalize text-neutral-600">{selectedPokemonToTeam.name}</strong>:</p>
 
@@ -789,7 +789,7 @@ export default function App() {
                       setSelectedPokemonToTeam(null);
                     }
                   }}
-                  className="w-full p-3 bg-[#f6f7fb] hover:bg-indigo-50 hover:border-indigo-200 border border-[#e9ebf0] rounded-xl text-left text-xs font-bold capitalize text-slate-700 transition-all flex justify-between items-center cursor-pointer"
+                  className="w-full p-3 bg-canvas hover:bg-indigo-50 hover:border-indigo-200 border border-line rounded-xl text-left text-xs font-bold capitalize text-slate-700 transition-all flex justify-between items-center cursor-pointer"
                 >
                   <span>{team.name}</span>
                   <span className="text-[10px] text-neutral-400">{team.members.length}/6 Anggota</span>

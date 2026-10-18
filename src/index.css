@@ -2,8 +2,17 @@
 
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  --color-canvas: #f6f7fb;
+  --color-line: #e9ebf0;
+  --color-line-soft: #f2f4f7;
+  --color-brand: #4f46e5;
+  --color-brand-soft: #eef2ff;
+
   --animate-float-hover: float-poke 3.5s ease-in-out infinite;
   --animate-slide-up: toast-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-scale-in: scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in 0.2s ease-out;
 
   @keyframes float-poke {
     0%,
@@ -25,13 +34,81 @@
       opacity: 1;
     }
   }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: #f6f7fb;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-canvas);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-600 px-5 py-3 text-xs font-bold text-white shadow-[0_6px_16px_-6px_rgba(79,70,229,.55)] transition-all hover:opacity-95 active:scale-[.98] disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-5 py-3 text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-indigo-50 hover:text-indigo-700 active:scale-[.98] disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .panel {
+    @apply rounded-3xl border border-line bg-white shadow-[0_1px_2px_rgba(17,24,39,.03)];
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-xs font-bold text-slate-800 transition-all placeholder:text-slate-400 focus:border-indigo-600 focus:bg-white focus:outline-none disabled:opacity-50;
+  }
+
+  .label-eyebrow {
+    @apply mb-1.5 block text-[8px] font-black uppercase tracking-widest text-slate-400;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Minimalist Scrollbar */
