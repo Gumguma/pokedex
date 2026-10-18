@@ -1,3 +1,24 @@
+// Singleton AudioContext untuk prevent memory leak
+let globalAudioContext = null;
+
+const getAudioContext = () => {
+    if (!globalAudioContext) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+            globalAudioContext = new AudioContext();
+        }
+    }
+    return globalAudioContext;
+};
+
+// Cleanup function untuk unmount
+export const cleanupAudio = () => {
+    if (globalAudioContext) {
+        globalAudioContext.close();
+        globalAudioContext = null;
+    }
+};
+
 export const playPokemonCry = (id, types) => {
     if (!id) {
         playSynthesizedRetroCry(types);
@@ -23,10 +44,9 @@ export const playPokemonCry = (id, types) => {
 
 export const playSynthesizedRetroCry = (types) => {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
 
-        const ctx = new AudioContext();
         if (ctx.state === 'suspended') {
             ctx.resume();
         }
@@ -62,6 +82,12 @@ export const playSynthesizedRetroCry = (types) => {
 
         osc.start();
         osc.stop(ctx.currentTime + duration);
+
+        // Cleanup nodes setelah selesai
+        osc.onended = () => {
+            osc.disconnect();
+            gainNode.disconnect();
+        };
     } catch (err) {
         console.warn("Gagal mensintesis audio retro:", err);
     }
