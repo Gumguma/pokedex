@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 
 export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenameTeam, onRemoveFromTeam }) {
@@ -172,3 +173,11 @@ export default function TeamManager({ teams, onCreateTeam, onDeleteTeam, onRenam
         </div>
     );
 }
+
+TeamManager.propTypes = {
+  teams: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onCreateTeam: PropTypes.func.isRequired,
+  onDeleteTeam: PropTypes.func.isRequired,
+  onRenameTeam: PropTypes.func.isRequired,
+  onRemoveFromTeam: PropTypes.func.isRequired,
+};

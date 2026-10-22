@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useModalBehavior } from '../hooks/useModalBehavior';
 
 export default function ModalShell({ onClose, label, children, panelClassName = '' }) {
@@ -19,3 +20,10 @@ export default function ModalShell({ onClose, label, children, panelClassName = 
         </div>
     );
 }
+
+ModalShell.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  label: PropTypes.string.isRequired,
+  children: PropTypes.node,
+  panelClassName: PropTypes.string,
+};

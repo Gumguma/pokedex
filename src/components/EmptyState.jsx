@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 export default function EmptyState({ icon, title, description, actionLabel, onAction }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center text-center py-14 px-6 rounded-3xl border border-dashed border-line bg-white/60">
@@ -19,3 +20,11 @@ export default function EmptyState({ icon, title, description, actionLabel, onAc
     </div>
   );
 }
+
+EmptyState.propTypes = {
+  icon: PropTypes.node,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string,
+  actionLabel: PropTypes.string,
+  onAction: PropTypes.func,
+};

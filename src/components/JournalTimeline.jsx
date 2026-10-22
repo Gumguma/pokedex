@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 import JournalForm from './JournalForm';
 
@@ -150,3 +151,9 @@ export default function JournalTimeline({ journalLogs, onUpdateJournal, onDelete
         </div>
     );
 }
+
+JournalTimeline.propTypes = {
+  journalLogs: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onUpdateJournal: PropTypes.func.isRequired,
+  onDeleteJournal: PropTypes.func.isRequired,
+};

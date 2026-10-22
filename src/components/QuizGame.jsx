@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 
 export default function QuizGame({
     gamePokemon,
@@ -105,3 +106,14 @@ export default function QuizGame({
         </div>
     );
 }
+
+QuizGame.propTypes = {
+  gamePokemon: PropTypes.object,
+  gameOptions: PropTypes.arrayOf(PropTypes.string).isRequired,
+  gameScore: PropTypes.number.isRequired,
+  gameHighScore: PropTypes.number.isRequired,
+  gameResult: PropTypes.oneOf([null, 'correct', 'wrong']),
+  gameLoading: PropTypes.bool.isRequired,
+  onGuess: PropTypes.func.isRequired,
+  onNextRound: PropTypes.func.isRequired,
+};

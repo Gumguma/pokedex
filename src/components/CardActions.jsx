@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 const baseButton = "relative w-[22px] h-[22px] rounded-lg border inline-flex items-center justify-center transition-all cursor-pointer active:scale-90 after:absolute after:-inset-[11px] after:content-['']";
 
 export default function CardActions({ pokemon, isFav, isComparing, onToggleFav, onToggleCompare, onAddToTeamClick }) {
@@ -38,3 +39,12 @@ export default function CardActions({ pokemon, isFav, isComparing, onToggleFav, 
         </div>
     );
 }
+
+CardActions.propTypes = {
+  pokemon: PropTypes.object.isRequired,
+  isFav: PropTypes.bool.isRequired,
+  isComparing: PropTypes.bool.isRequired,
+  onToggleFav: PropTypes.func.isRequired,
+  onToggleCompare: PropTypes.func.isRequired,
+  onAddToTeamClick: PropTypes.func.isRequired,
+};

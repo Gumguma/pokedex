@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 export default function PokemonCardSkeleton({ count = 8 }) {
   return (
     <>
@@ -33,3 +34,7 @@ export default function PokemonCardSkeleton({ count = 8 }) {
     </>
   );
 }
+
+PokemonCardSkeleton.propTypes = {
+  count: PropTypes.number,
+};

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 const DEFAULT_LABELS = {
     date: 'Tanggal',
     location: 'Lokasi',
@@ -90,3 +91,13 @@ export default function JournalForm({
         </div>
     );
 }
+
+JournalForm.propTypes = {
+  form: PropTypes.object.isRequired,
+  setForm: PropTypes.func.isRequired,
+  natures: PropTypes.array.isRequired,
+  labels: PropTypes.object,
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  saveLabel: PropTypes.string,
+};

@@ -42,13 +42,22 @@ Butuh Node 20+ (dikembangkan di Node 22).
 
 ```
 src/
-  App.jsx                  # state global + tab + fetch PokéAPI
-  components/              # 15 komponen UI (card, modal, battle, quiz, journal, tim)
-  hooks/                   # useFavorites, useTeams, useJournal, useDebounce, useModalBehavior
-  utils/                   # storage (localStorage aman), statCalculator, typeColor, audioHelper
+  App.jsx                  # orkestrasi state global + tab
+  components/              # UI: ExploreView, CompareView, BattleSimulator, PokemonModal, dst.
+  hooks/
+    usePokemonCollection.js  # fetch daftar/detail/kuis + cache + error state
+    useBattleEngine.js       # state & loop simulasi pertarungan
+    useFavorites.js, useTeams.js, useJournal.js, useDebounce.js, useModalBehavior.js
+  utils/
+    http.js                  # fetchJson (retry+backoff) & mapWithConcurrency
+    pokemonMapper.js         # pemetaan respons PokéAPI -> objek UI
+    battle.js                # logika damage, tipe, antrean turn (murni)
+    storage.js, typeColor.js, statCalculator.js, audioHelper.js
   constants/pokemonData.js # TYPE_DETAILS (18 tipe + legendary/mythical) & label generasi
   index.css                # token Tailwind 4 (@theme)
 ```
+
+Lapisan data dipisah dari tampilan: `hooks/` memegang state dan efek, `utils/` memegang fungsi murni, `components/` hanya render.
 
 ## Penyimpanan data
 
@@ -68,7 +77,14 @@ Semua data pengguna ada di `localStorage`, tidak ada yang dikirim ke server:
 npm test
 ```
 
-Memakai test runner bawaan Node (`node --test`). Saat ini menguji helper kontras warna badge (`src/utils/typeColor.js`).
+Memakai test runner bawaan Node (`node --test`), 40+ test untuk fungsi murni:
+
+- `src/utils/typeColor.test.js` — kontras warna badge
+- `src/utils/http.test.js` — retry/backoff `fetchJson` & batas konkurensi
+- `src/utils/pokemonMapper.test.js` — pemetaan data PokéAPI, evolusi, pesan error
+- `src/utils/battle.test.js` — damage, efektivitas tipe, urutan turn, kondisi menang
+
+Test tidak memanggil jaringan; `fetch` di-inject atau di-monkeypatch.
 
 ## Deploy
 

@@ -1,753 +1,376 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import ModalShell from './ModalShell';
-import { TYPE_EFFECTIVENESS } from '../constants/pokemonData';
 import TypeBadge from './TypeBadge';
-import { safeSetItem, safeGetItem, safeRemoveItem } from '../utils/storage';
+import { useBattleEngine } from '../hooks/useBattleEngine';
 
-// Stat extraction helper
-const getStat = (poke, statName) => {
-    const s = poke.stats?.find(st => st.name === statName);
-    return s ? s.value : 50;
+const hpBarColor = (pct) => (pct > 50 ? 'bg-emerald-500' : pct > 20 ? 'bg-amber-400' : 'bg-rose-500');
+
+/** Kartu Pokémon yang sedang bertarung. */
+function FighterCard({ pokemon, side, animating, hit }) {
+  if (!pokemon) {
+    return (
+      <div className="h-[300px] bg-neutral-50 border border-line rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
+        Semua Pokémon pingsan
+      </div>
+    );
+  }
+
+  const hpPct = (pokemon.currentHp / pokemon.maxHp) * 100;
+  const attackStyle = side === 1
+    ? (animating ? 'translate-x-10 scale-105 rotate-2 z-10' : '')
+    : (animating ? '-translate-x-10 scale-105 -rotate-2 z-10' : '');
+
+  return (
+    <div
+      className={`bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[240px] sm:min-h-[300px] transition-all duration-300 ${attackStyle} ${
+        hit ? 'animate-bounce border-slate-300 bg-neutral-100' : ''
+      }`}
+    >
+      <span className={`absolute top-4 font-mono text-[8px] font-bold text-neutral-400 ${side === 1 ? 'left-4' : 'right-4'}`}>
+        ID #{String(pokemon.id).padStart(3, '0')}
+      </span>
+      <img src={pokemon.sprite} alt={pokemon.name} className="w-28 h-28 object-contain filter drop-shadow-md animate-float-hover mb-4" />
+      <h3 className="capitalize font-extrabold text-base text-neutral-900 m-0">{pokemon.name}</h3>
+      <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest block mt-0.5">Lv. 50</span>
+
+      <div className="flex justify-center gap-1 mt-2">
+        {pokemon.types.map((t) => <TypeBadge key={t} type={t} className="text-[8px]" />)}
+      </div>
+
+      <div className="w-full mt-4 max-w-[200px] mx-auto text-left space-y-1">
+        <div className="flex justify-between items-center text-[9px] font-bold font-mono text-neutral-600">
+          <span>HP</span>
+          <span>{pokemon.currentHp} / {pokemon.maxHp}</span>
+        </div>
+        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-neutral-200/30">
+          <div style={{ width: `${hpPct}%` }} className={`h-full transition-all duration-300 ${hpBarColor(hpPct)}`} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+FighterCard.propTypes = {
+  pokemon: PropTypes.object,
+  side: PropTypes.oneOf([1, 2]).isRequired,
+  animating: PropTypes.bool.isRequired,
+  hit: PropTypes.bool.isRequired,
 };
 
-// Prepare members with dynamic battle stats (scaled for Lv 50 feel)
-const prepareTeamMembers = (members) => {
-    return members.map(m => {
-        const rawHp = getStat(m, 'hp');
-        const maxHp = Math.floor(rawHp * 2.2 + 110);
-        return {
-            ...m,
-            maxHp,
-            currentHp: maxHp,
-            attack: Math.floor(getStat(m, 'attack') * 1.2 + 20),
-            defense: Math.floor(getStat(m, 'defense') * 1.2 + 20),
-            speed: Math.floor(getStat(m, 'speed') * 1.2 + 20),
-        };
-    });
-};
+/** Deretan thumbnail tim dengan indikator HP tipis. */
+function LineupRow({ members, activeIdx, label }) {
+  return (
+    <div className="space-y-2">
+      <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">{label}</span>
+      <div className="flex flex-wrap gap-2.5">
+        {members.map((m, idx) => (
+          <div
+            key={m.id}
+            className={`w-11 h-11 border rounded-xl flex items-center justify-center p-1 relative transition-all duration-300 ${
+              idx === activeIdx
+                ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-600/10'
+                : m.currentHp <= 0
+                  ? 'opacity-40 grayscale border-slate-300 bg-canvas'
+                  : 'bg-white border-line'
+            }`}
+          >
+            <img src={m.sprite} alt={m.name} className="w-full h-full object-contain" />
+            {m.currentHp > 0 && (
+              <div className="absolute -bottom-1 left-0 right-0 h-1 bg-neutral-200 rounded-full overflow-hidden mx-1">
+                <div style={{ width: `${(m.currentHp / m.maxHp) * 100}%` }} className="h-full bg-neutral-900" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-// Calculate damage based on Attacker, Defender and Type effectiveness
-const calcDamage = (attacker, defender) => {
-    const atk = attacker.attack;
-    const def = defender.defense;
-    const baseDamage = Math.max(8, Math.floor(atk - def * 0.5));
-
-    // Evaluate Type Effectiveness Multiplier
-    let multiplier = 1.0;
-    if (attacker.types && defender.types) {
-        attacker.types.forEach(atkType => {
-            defender.types.forEach(defType => {
-                const mult = TYPE_EFFECTIVENESS[atkType]?.[defType];
-                if (mult !== undefined) {
-                    multiplier *= mult;
-                }
-            });
-        });
-    }
-
-    const randomFactor = 0.85 + Math.random() * 0.3; // 85% to 115%
-    const finalDamage = Math.max(4, Math.floor(baseDamage * multiplier * randomFactor));
-
-    return { damage: finalDamage, multiplier };
-};
-
-const getEffectivenessText = (mult) => {
-    if (mult >= 2) return " 💥 Sangat efektif!";
-    if (mult > 0 && mult < 1) return " 🛡️ Kurang efektif...";
-    if (mult === 0) return " 🚫 Tidak berpengaruh!";
-    return "";
+LineupRow.propTypes = {
+  members: PropTypes.arrayOf(PropTypes.object).isRequired,
+  activeIdx: PropTypes.number.isRequired,
+  label: PropTypes.string.isRequired,
 };
 
 export default function BattleSimulator({ teams }) {
-    // Selection States
-    const [team1Id, setTeam1Id] = useState('');
-    const [team2Id, setTeam2Id] = useState('');
+  const engine = useBattleEngine(teams);
+  const logEndRef = useRef(null);
 
-    // Battle History State
-    const [battleHistory, setBattleHistory] = useState(() => {
-        return safeGetItem('pokedex_battle_history', []);
-    });
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [engine.logs]);
 
-    // Battle Engine States
-    const [battleState, setBattleState] = useState('idle'); // 'idle' | 'running' | 'paused' | 'finished'
-    const [t1Members, setT1Members] = useState([]);
-    const [t2Members, setT2Members] = useState([]);
-    const [t1ActiveIdx, setT1ActiveIdx] = useState(0);
-    const [t2ActiveIdx, setT2ActiveIdx] = useState(0);
-    
-    const [turn, setTurn] = useState(1);
-    const [battleQueue, setBattleQueue] = useState([]);
-    const [logs, setLogs] = useState([]);
-    const [winner, setWinner] = useState('');
-    const [simulationSpeed, setSimulationSpeed] = useState(1200); // ms per tick
+  const {
+    team1Id, setTeam1Id, team2Id, setTeam2Id, team1, team2, validTeams,
+    battleState, t1Members, t2Members, t1ActiveIdx, t2ActiveIdx, turn,
+    logs, winner, simulationSpeed, setSimulationSpeed,
+    animating1, animating2, hit1, hit2, battleHistory,
+    startBattle, resetBattle, pauseBattle, resumeBattle, clearHistory,
+  } = engine;
 
-    // Visual Animation States
-    const [animating1, setAnimating1] = useState(false);
-    const [animating2, setAnimating2] = useState(false);
-    const [hit1, setHit1] = useState(false);
-    const [hit2, setHit2] = useState(false);
+  return (
+    <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
 
-    // Auto-scroll ref for log box
-    const logEndRef = useRef(null);
+      {/* 1. PILIH TIM */}
+      {battleState === 'idle' && (
+        <div className="space-y-8">
+          <div className="text-center max-w-xl mx-auto">
+            <h2 className="text-xl font-extrabold text-neutral-900 m-0">Arena Tempur Pokémon</h2>
+            <p className="text-slate-400 text-xs mt-1 m-0 font-medium leading-relaxed">
+              Pilih dua formasi tim tempur yang sudah diisi, lalu simulasikan pertarungan otomatis berdasarkan giliran (turn-based).
+            </p>
+          </div>
 
-    // Retrieve active teams
-    const team1 = teams.find(t => t.id === team1Id);
-    const team2 = teams.find(t => t.id === team2Id);
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
+            {[1, 2].map((side) => {
+              const isFirst = side === 1;
+              const selectedId = isFirst ? team1Id : team2Id;
+              const onSelect = isFirst ? setTeam1Id : setTeam2Id;
+              const team = isFirst ? team1 : team2;
 
-    // Filter out empty teams for dropdown selection
-    const validTeams = teams.filter(t => t.members && t.members.length > 0);
+              return (
+                <div key={side} className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
+                  <div>
+                    <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">
+                      {isFirst ? 'PILIH TIM 1 (PLAYER)' : 'PILIH TIM 2 (LAWAN / KOMPUTER)'}
+                    </label>
+                    <select
+                      value={selectedId}
+                      onChange={(event) => onSelect(event.target.value)}
+                      className="w-full bg-white border border-line py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
+                    >
+                      <option value="">-- Pilih Tim {side} --</option>
+                      {validTeams.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name} ({t.members.length} Pokémon)</option>
+                      ))}
+                    </select>
+                  </div>
 
-    // Scroll to bottom of logs
-    useEffect(() => {
-        if (logEndRef.current) {
-            logEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [logs]);
-
-    // Initialize battle
-    const startBattle = () => {
-        if (!team1 || !team2) return;
-        if (team1.members.length === 0 || team2.members.length === 0) return;
-
-        const prepared1 = prepareTeamMembers(team1.members);
-        const prepared2 = prepareTeamMembers(team2.members);
-
-        setT1Members(prepared1);
-        setT2Members(prepared2);
-        setT1ActiveIdx(0);
-        setT2ActiveIdx(0);
-        setTurn(1);
-        setWinner('');
-        setLogs([
-            `⚔️ **SIMULASI ARENA DIMULAI!**`,
-            `👥 **Tim 1:** ${team1.name} VS **Tim 2:** ${team2.name}`,
-            `🏁 **${prepared1[0].name.toUpperCase()}** dan **${prepared2[0].name.toUpperCase()}** memasuki arena arena tempur!`
-        ]);
-        setBattleQueue([]);
-        setBattleState('running');
-    };
-
-    // Reset battle
-    const resetBattle = () => {
-        setBattleState('idle');
-        setT1Members([]);
-        setT2Members([]);
-        setT1ActiveIdx(0);
-        setT2ActiveIdx(0);
-        setTurn(1);
-        setBattleQueue([]);
-        setLogs([]);
-        setWinner('');
-    };
-
-    // Build the action queue when it is empty
-    const generateQueue = useCallback(() => {
-        const p1 = t1Members[t1ActiveIdx];
-        const p2 = t2Members[t2ActiveIdx];
-
-        // 1. Check if either side has fainted active Pokemon
-        if (!p1 && !p2) {
-            setBattleQueue([{ type: 'victory', winnerSide: 0 }]); // draw
-            return;
-        }
-        if (!p1) {
-            setBattleQueue([{ type: 'victory', winnerSide: 2 }]);
-            return;
-        }
-        if (!p2) {
-            setBattleQueue([{ type: 'victory', winnerSide: 1 }]);
-            return;
-        }
-
-        // If one is fainted, queue a swap action
-        if (p1.currentHp <= 0) {
-            const nextIdx = t1ActiveIdx + 1;
-            if (nextIdx >= t1Members.length) {
-                setBattleQueue([{ type: 'victory', winnerSide: 2 }]);
-            } else {
-                setBattleQueue([{ type: 'swap', side: 1, nextIdx }]);
-            }
-            return;
-        }
-        if (p2.currentHp <= 0) {
-            const nextIdx = t2ActiveIdx + 1;
-            if (nextIdx >= t2Members.length) {
-                setBattleQueue([{ type: 'victory', winnerSide: 1 }]);
-            } else {
-                setBattleQueue([{ type: 'swap', side: 2, nextIdx }]);
-            }
-            return;
-        }
-
-        // 2. Both are alive: determine turn order based on Speed
-        const speed1 = p1.speed;
-        const speed2 = p2.speed;
-
-        const queue = [];
-        if (speed1 >= speed2) {
-            queue.push(
-                { type: 'attack', attackerSide: 1, defenderSide: 2, turn },
-                { type: 'check_faint', side: 2 },
-                { type: 'attack', attackerSide: 2, defenderSide: 1, turn }, // counter-attack (if alive)
-                { type: 'check_faint', side: 1 }
-            );
-        } else {
-            queue.push(
-                { type: 'attack', attackerSide: 2, defenderSide: 1, turn },
-                { type: 'check_faint', side: 1 },
-                { type: 'attack', attackerSide: 1, defenderSide: 2, turn }, // counter-attack (if alive)
-                { type: 'check_faint', side: 2 }
-            );
-        }
-        
-        setBattleQueue(queue);
-        setTurn(prev => prev + 1);
-    }, [t1Members, t1ActiveIdx, t2Members, t2ActiveIdx, turn]);
-
-    // Execute the front-most action in the queue
-    const executeAction = useCallback((action) => {
-        if (action.type === 'victory') {
-            const winTeamName = action.winnerSide === 1 ? team1.name : team2.name;
-            setWinner(winTeamName);
-            setLogs(prev => [
-                ...prev,
-                `🏆 **PERTANDINGAN SELESAI!**`,
-                `🎉 **Tim [${winTeamName.toUpperCase()}] keluar sebagai Pemenang!**`
-            ]);
-            setBattleState('finished');
-
-            // Save to Battle History
-            const newRecord = {
-                id: Date.now(),
-                team1Name: team1.name,
-                team2Name: team2.name,
-                winner: winTeamName,
-                turnCount: turn - 1,
-                date: new Date().toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-            };
-            setBattleHistory(prev => {
-                const next = [newRecord, ...prev];
-                safeSetItem('pokedex_battle_history', JSON.stringify(next));
-                return next;
-            });
-            return;
-        }
-
-        if (action.type === 'swap') {
-            if (action.side === 1) {
-                setT1ActiveIdx(action.nextIdx);
-                const nextPoke = t1Members[action.nextIdx];
-                setLogs(prev => [
-                    ...prev,
-                    `🔄 **${team1.name}** menarik Pokémon pingsan dan mengeluarkan **${nextPoke.name.toUpperCase()}** (HP: ${nextPoke.currentHp}/${nextPoke.maxHp})!`
-                ]);
-            } else {
-                setT2ActiveIdx(action.nextIdx);
-                const nextPoke = t2Members[action.nextIdx];
-                setLogs(prev => [
-                    ...prev,
-                    `🔄 **${team2.name}** menarik Pokémon pingsan dan mengeluarkan **${nextPoke.name.toUpperCase()}** (HP: ${nextPoke.currentHp}/${nextPoke.maxHp})!`
-                ]);
-            }
-            return;
-        }
-
-        if (action.type === 'check_faint') {
-            const poke = action.side === 1 ? t1Members[t1ActiveIdx] : t2Members[t2ActiveIdx];
-            if (poke && poke.currentHp <= 0) {
-                setLogs(prev => [
-                    ...prev,
-                    `💀 **${poke.name.toUpperCase()}** pingsan (fainted)!`
-                ]);
-                // Clear remaining queue to force swap checks
-                setBattleQueue([]);
-            }
-            return;
-        }
-
-        if (action.type === 'attack') {
-            const attacker = action.attackerSide === 1 ? t1Members[t1ActiveIdx] : t2Members[t2ActiveIdx];
-            const defender = action.defenderSide === 1 ? t1Members[t1ActiveIdx] : t2Members[t2ActiveIdx];
-
-            // If attacker fainted earlier in this turn, cancel attack
-            if (!attacker || attacker.currentHp <= 0 || !defender || defender.currentHp <= 0) {
-                return;
-            }
-
-            const { damage, multiplier } = calcDamage(attacker, defender);
-
-            // Select a random skill from attacker moves
-            const movesList = attacker.moves && attacker.moves.length > 0 
-                ? attacker.moves 
-                : ['Tackle', 'Growl', 'Pound', 'Scratch'];
-            const chosenMove = movesList[Math.floor(Math.random() * movesList.length)];
-
-            // Apply damage to state
-            if (action.defenderSide === 1) {
-                setT1Members(prev => prev.map((m, idx) => {
-                    if (idx === t1ActiveIdx) {
-                        return { ...m, currentHp: Math.max(0, m.currentHp - damage) };
-                    }
-                    return m;
-                }));
-            } else {
-                setT2Members(prev => prev.map((m, idx) => {
-                    if (idx === t2ActiveIdx) {
-                        return { ...m, currentHp: Math.max(0, m.currentHp - damage) };
-                    }
-                    return m;
-                }));
-            }
-
-            // Animation triggers
-            if (action.attackerSide === 1) {
-                setAnimating1(true);
-                setHit2(true);
-                setTimeout(() => {
-                    setAnimating1(false);
-                    setHit2(false);
-                }, 400);
-            } else {
-                setAnimating2(true);
-                setHit1(true);
-                setTimeout(() => {
-                    setAnimating2(false);
-                    setHit1(false);
-                }, 400);
-            }
-
-            const sideLabel = action.attackerSide === 1 ? team1.name : team2.name;
-            setLogs(prev => [
-                ...prev,
-                `⚡ **[${sideLabel}] ${attacker.name.toUpperCase()}** menggunakan **${chosenMove}** kepada **${defender.name.toUpperCase()}**! Menghasilkan **${damage}** damage.${getEffectivenessText(multiplier)}`
-            ]);
-        }
-    }, [t1Members, t1ActiveIdx, t2Members, t2ActiveIdx, team1, team2, turn]);
-
-    // Engine loop tick
-    useEffect(() => {
-        if (battleState !== 'running') return;
-
-        const timer = setTimeout(() => {
-            if (battleQueue.length === 0) {
-                generateQueue();
-            } else {
-                const [action, ...rest] = battleQueue;
-                setBattleQueue(rest);
-                executeAction(action);
-            }
-        }, simulationSpeed);
-
-        return () => clearTimeout(timer);
-    }, [battleState, battleQueue, simulationSpeed, generateQueue, executeAction]);
-
-    return (
-        <div className="bg-white p-5 sm:p-8 rounded-3xl border border-line shadow-[0_1px_2px_rgba(17,24,39,.03)] max-w-5xl mx-auto text-left animate-scale-in">
-            
-            {/* 1. SELECTION SCREEN (IDLE STATE) */}
-            {battleState === 'idle' && (
-                <div className="space-y-8">
-                    <div className="text-center max-w-xl mx-auto">
-                        <h2 className="text-xl font-extrabold text-neutral-900 m-0">Arena Tempur Pokémon</h2>
-                        <p className="text-slate-400 text-xs mt-1 m-0 font-medium leading-relaxed">
-                            Pilih dua formasi tim tempur yang sudah diisi, lalu simulasikan pertarungan otomatis berdasarkan giliran (turn-based).
-                        </p>
+                  {team ? (
+                    <div className="space-y-3">
+                      <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">
+                        LINEUP TIM {side}
+                      </span>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        {team.members.map((m) => (
+                          <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
+                            <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
-                        {/* Player Team Selection */}
-                        <div className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
-                            <div>
-                                <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 1 (PLAYER)</label>
-                                <select
-                                    value={team1Id}
-                                    onChange={(e) => setTeam1Id(e.target.value)}
-                                    className="w-full bg-white border border-line py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
-                                >
-                                    <option value="">-- Pilih Tim 1 --</option>
-                                    {validTeams.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name} ({t.members.length} Pokémon)</option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            {team1 ? (
-                                <div className="space-y-3">
-                                    <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1</span>
-                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                                        {team1.members.map(m => (
-                                            <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
-                                                <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-line rounded-xl font-bold bg-white">
-                                    Belum memilih Tim 1
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Opponent Team Selection */}
-                        <div className="bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line space-y-4">
-                            <div>
-                                <label className="block text-[8px] font-black tracking-widest text-neutral-400 mb-1.5 uppercase">PILIH TIM 2 (LAWAN / KOMPUTER)</label>
-                                <select
-                                    value={team2Id}
-                                    onChange={(e) => setTeam2Id(e.target.value)}
-                                    className="w-full bg-white border border-line py-3 px-4 rounded-xl text-xs font-bold text-neutral-800 focus:outline-none focus:border-indigo-600"
-                                >
-                                    <option value="">-- Pilih Tim 2 --</option>
-                                    {validTeams.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name} ({t.members.length} Pokémon)</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {team2 ? (
-                                <div className="space-y-3">
-                                    <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 2</span>
-                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                                        {team2.members.map(m => (
-                                            <div key={m.id} className="aspect-square bg-white border border-line rounded-xl flex items-center justify-center p-1 relative group" title={m.name}>
-                                                <img src={m.sprite} alt={m.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-line rounded-xl font-bold bg-white">
-                                    Belum memilih Tim 2
-                                </div>
-                            )}
-                        </div>
+                  ) : (
+                    <div className="py-8 text-center text-neutral-400 text-xs border border-dashed border-line rounded-xl font-bold bg-white">
+                      Belum memilih Tim {side}
                     </div>
-
-                    <div className="text-center pt-4">
-                        <button
-                            onClick={startBattle}
-                            disabled={!team1Id || !team2Id || team1Id === team2Id || team1?.members?.length === 0 || team2?.members?.length === 0}
-                            className="btn-primary px-8 py-3.5 uppercase tracking-widest disabled:cursor-not-allowed"
-                        >
-                            {!team1Id || !team2Id
-                                ? 'Pilih Kedua Tim'
-                                : team1Id === team2Id
-                                ? 'Tim Tidak Boleh Sama'
-                                : 'Mulai Pertandingan'}
-                        </button>
-                    </div>
-
-                    {/* RIWAYAT PERTANDINGAN */}
-                    <div className="border-t border-line pt-8 mt-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 className="text-sm font-black text-neutral-900 uppercase tracking-tight m-0">Riwayat Pertandingan Arena</h3>
-                                <p className="text-[10px] text-slate-400 mt-0.5 m-0 font-medium">Daftar hasil pertarungan taktis yang telah selesai disimulasikan.</p>
-                            </div>
-                            {battleHistory.length > 0 && (
-                                <button
-                                    onClick={() => {
-                                        setBattleHistory([]);
-                                        safeRemoveItem('pokedex_battle_history');
-                                    }}
-                                    className="px-3 py-1.5 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer text-slate-400"
-                                >
-                                    ✕ Bersihkan Riwayat
-                                </button>
-                            )}
-                        </div>
-
-                        {battleHistory.length === 0 ? (
-                            <div className="py-10 text-center border border-dashed border-line rounded-2xl bg-canvas/40 text-neutral-400 text-[10px] font-bold">
-                                Belum ada riwayat pertandingan.
-                            </div>
-                        ) : (
-                            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                                {battleHistory.map((history) => (
-                                    <div key={history.id} className="bg-canvas/60 border border-line p-4 rounded-xl flex items-center justify-between text-[10px] font-bold text-neutral-600 gap-4">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="text-neutral-800">{history.team1Name}</span>
-                                                <span className="text-neutral-400 font-normal">VS</span>
-                                                <span className="text-neutral-800">{history.team2Name}</span>
-                                            </div>
-                                            <div className="text-[8px] text-neutral-400 font-bold tracking-wider font-mono uppercase">{history.date}</div>
-                                        </div>
-                                        <div className="text-right space-y-1 flex-shrink-0">
-                                            <div className="text-[9px] text-indigo-700 font-black uppercase">Pemenang: {history.winner} 🎉</div>
-                                            <div className="text-[8px] text-slate-400 font-mono tracking-wider">{history.turnCount} Turn</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                  )}
                 </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center pt-4">
+            <button
+              onClick={startBattle}
+              disabled={!team1Id || !team2Id || team1Id === team2Id || team1?.members?.length === 0 || team2?.members?.length === 0}
+              className="btn-primary px-8 py-3.5 uppercase tracking-widest disabled:cursor-not-allowed"
+            >
+              {!team1Id || !team2Id
+                ? 'Pilih Kedua Tim'
+                : team1Id === team2Id
+                  ? 'Tim Tidak Boleh Sama'
+                  : 'Mulai Pertandingan'}
+            </button>
+          </div>
+
+          <div className="border-t border-line pt-8 mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-black text-neutral-900 uppercase tracking-tight m-0">Riwayat Pertandingan Arena</h3>
+                <p className="text-[10px] text-slate-400 mt-0.5 m-0 font-medium">
+                  Daftar hasil pertarungan taktis yang telah selesai disimulasikan.
+                </p>
+              </div>
+              {battleHistory.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  className="px-3 py-1.5 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer text-slate-400"
+                >
+                  ✕ Bersihkan Riwayat
+                </button>
+              )}
+            </div>
+
+            {battleHistory.length === 0 ? (
+              <div className="py-10 text-center border border-dashed border-line rounded-2xl bg-canvas/40 text-neutral-400 text-[10px] font-bold">
+                Belum ada riwayat pertandingan.
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                {battleHistory.map((history) => (
+                  <div key={history.id} className="bg-canvas/60 border border-line p-4 rounded-xl flex items-center justify-between text-[10px] font-bold text-neutral-600 gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-neutral-800">{history.team1Name}</span>
+                        <span className="text-neutral-400 font-normal">VS</span>
+                        <span className="text-neutral-800">{history.team2Name}</span>
+                      </div>
+                      <div className="text-[8px] text-neutral-400 font-bold tracking-wider font-mono uppercase">{history.date}</div>
+                    </div>
+                    <div className="text-right space-y-1 flex-shrink-0">
+                      <div className="text-[9px] text-indigo-700 font-black uppercase">Pemenang: {history.winner} 🎉</div>
+                      <div className="text-[8px] text-slate-400 font-mono tracking-wider">{history.turnCount} Turn</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-
-            {/* 2. BATTLE STAGE (RUNNING, PAUSED, FINISHED STATE) */}
-            {battleState !== 'idle' && (
-                <div className="space-y-8">
-                    {/* Header Arena */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-line-soft pb-5">
-                        <div>
-                            <h2 className="text-sm font-black tracking-widest text-neutral-400 uppercase m-0">Arena Tempur Aktif</h2>
-                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] text-neutral-500 font-bold">
-                                <span>{team1?.name}</span>
-                                <span className="text-neutral-300">VS</span>
-                                <span>{team2?.name}</span>
-                            </div>
-                        </div>
-
-                        {/* Controls speed & state */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                onClick={() => setSimulationSpeed(prev => prev === 1200 ? 500 : 1200)}
-                                className="px-3 py-2 border border-line hover:bg-indigo-50 hover:text-indigo-700 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-700 font-bold"
-                            >
-                                Speed: {simulationSpeed === 1200 ? 'Normal (1.2s)' : 'Cepat (0.5s)'}
-                            </button>
-
-                            {battleState === 'running' && (
-                                <button
-                                    onClick={() => setBattleState('paused')}
-                                    className="px-4 py-2 bg-canvas hover:bg-indigo-50 border border-line hover:border-indigo-200 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-800"
-                                >
-                                    Pause
-                                </button>
-                            )}
-
-                            {battleState === 'paused' && (
-                                <button
-                                    onClick={() => setBattleState('running')}
-                                    className="btn-primary px-4 py-2 text-[9px] uppercase tracking-wider"
-                                >
-                                    Resume
-                                </button>
-                            )}
-
-                            <button
-                                onClick={resetBattle}
-                                className="px-4 py-2 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-400"
-                            >
-                                Keluar Arena
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Arena visual card Pokémon */}
-                    <div className="grid grid-cols-1 md:grid-cols-7 gap-5 sm:gap-6 items-center">
-                        
-                        {/* Tim 1 Active Pokemon Card */}
-                        <div className="md:col-span-3">
-                            {t1Members[t1ActiveIdx] ? (() => {
-                                const p = t1Members[t1ActiveIdx];
-                                const hpPct = (p.currentHp / p.maxHp) * 100;
-                                const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
-                                return (
-                                    <div 
-                                        className={`bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[240px] sm:min-h-[300px] transition-all duration-300 ${
-                                            animating1 ? 'translate-x-10 scale-105 rotate-2 z-10' : ''
-                                        } ${hit1 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
-                                    >
-                                        <span className="absolute top-4 left-4 font-mono text-[8px] font-bold text-neutral-400">ID #{String(p.id).padStart(3, '0')}</span>
-                                        <img src={p.sprite} alt={p.name} className="w-28 h-28 object-contain filter drop-shadow-md animate-float-hover mb-4" />
-                                        <h3 className="capitalize font-extrabold text-base text-neutral-900 m-0">{p.name}</h3>
-                                        <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest block mt-0.5">Lv. 50</span>
-                                        
-                                        <div className="flex justify-center gap-1 mt-2">
-                                            {p.types.map(t => <TypeBadge key={t} type={t} className="text-[8px]" />)}
-                                        </div>
-
-                                        {/* HP Info */}
-                                        <div className="w-full mt-4 max-w-[200px] mx-auto text-left space-y-1">
-                                            <div className="flex justify-between items-center text-[9px] font-bold font-mono text-neutral-600">
-                                                <span>HP</span>
-                                                <span>{p.currentHp} / {p.maxHp}</span>
-                                            </div>
-                                            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-neutral-200/30">
-                                                <div style={{ width: `${hpPct}%` }} className={`h-full transition-all duration-300 ${barColor}`} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })() : (
-                                <div className="h-[300px] bg-neutral-50 border border-line rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
-                                    Semua Pokémon pingsan
-                                </div>
-                            )}
-                        </div>
-
-                        {/* VS Separator */}
-                        <div className="md:col-span-1 text-center py-4 flex flex-col items-center justify-center gap-2">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-700 to-violet-600 border-4 border-white shadow-[0_0_0_1px_rgba(79,70,229,.25)] flex items-center justify-center text-white text-xs font-black tracking-tight z-10">VS</div>
-                            <span className="font-mono text-[9px] font-black text-slate-400 uppercase tracking-widest block">Turn {turn}</span>
-                        </div>
-
-                        {/* Tim 2 Active Pokemon Card */}
-                        <div className="md:col-span-3">
-                            {t2Members[t2ActiveIdx] ? (() => {
-                                const p = t2Members[t2ActiveIdx];
-                                const hpPct = (p.currentHp / p.maxHp) * 100;
-                                const barColor = hpPct > 50 ? 'bg-emerald-500' : hpPct > 20 ? 'bg-amber-400' : 'bg-rose-500';
-                                return (
-                                    <div 
-                                        className={`bg-canvas/60 p-4 sm:p-6 rounded-2xl border border-line text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[240px] sm:min-h-[300px] transition-all duration-300 ${
-                                            animating2 ? '-translate-x-10 scale-105 -rotate-2 z-10' : ''
-                                        } ${hit2 ? 'animate-bounce border-slate-300 bg-neutral-100' : ''}`}
-                                    >
-                                        <span className="absolute top-4 right-4 font-mono text-[8px] font-bold text-neutral-400">ID #{String(p.id).padStart(3, '0')}</span>
-                                        <img src={p.sprite} alt={p.name} className="w-28 h-28 object-contain filter drop-shadow-md animate-float-hover mb-4" />
-                                        <h3 className="capitalize font-extrabold text-base text-neutral-900 m-0">{p.name}</h3>
-                                        <span className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest block mt-0.5">Lv. 50</span>
-                                        
-                                        <div className="flex justify-center gap-1 mt-2">
-                                            {p.types.map(t => <TypeBadge key={t} type={t} className="text-[8px]" />)}
-                                        </div>
-
-                                        {/* HP Info */}
-                                        <div className="w-full mt-4 max-w-[200px] mx-auto text-left space-y-1">
-                                            <div className="flex justify-between items-center text-[9px] font-bold font-mono text-neutral-600">
-                                                <span>HP</span>
-                                                <span>{p.currentHp} / {p.maxHp}</span>
-                                            </div>
-                                            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden border border-neutral-200/30">
-                                                <div style={{ width: `${hpPct}%` }} className={`h-full transition-all duration-300 ${barColor}`} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })() : (
-                                <div className="h-[300px] bg-neutral-50 border border-line rounded-2xl flex items-center justify-center text-xs text-neutral-400 font-bold">
-                                    Semua Pokémon pingsan
-                                </div>
-                            )}
-                        </div>
-
-                    </div>
-
-                    {/* Lineups and HP status grids */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 border-t border-line-soft pt-6">
-                        {/* Tim 1 Lineup */}
-                        <div className="space-y-2">
-                            <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 1 ({team1?.name})</span>
-                            <div className="flex flex-wrap gap-2.5">
-                                {t1Members.map((m, idx) => (
-                                    <div 
-                                        key={m.id} 
-                                        className={`w-11 h-11 border rounded-xl flex items-center justify-center p-1 relative transition-all duration-300 ${
-                                            idx === t1ActiveIdx 
-                                                ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-600/10' 
-                                                : m.currentHp <= 0 
-                                                ? 'opacity-40 grayscale border-slate-300 bg-canvas' 
-                                                : 'bg-white border-line'
-                                        }`}
-                                    >
-                                        <img src={m.sprite} alt={m.name} className="w-full h-full object-contain" />
-                                        {m.currentHp > 0 && (
-                                            <div className="absolute -bottom-1 left-0 right-0 h-1 bg-neutral-200 rounded-full overflow-hidden mx-1">
-                                                <div style={{ width: `${(m.currentHp / m.maxHp) * 100}%` }} className="h-full bg-neutral-900" />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Tim 2 Lineup */}
-                        <div className="space-y-2">
-                            <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LINEUP TIM 2 ({team2?.name})</span>
-                            <div className="flex flex-wrap gap-2.5">
-                                {t2Members.map((m, idx) => (
-                                    <div 
-                                        key={m.id} 
-                                        className={`w-11 h-11 border rounded-xl flex items-center justify-center p-1 relative transition-all duration-300 ${
-                                            idx === t2ActiveIdx 
-                                                ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-600/10' 
-                                                : m.currentHp <= 0 
-                                                ? 'opacity-40 grayscale border-slate-300 bg-canvas' 
-                                                : 'bg-white border-line'
-                                        }`}
-                                    >
-                                        <img src={m.sprite} alt={m.name} className="w-full h-full object-contain" />
-                                        {m.currentHp > 0 && (
-                                            <div className="absolute -bottom-1 left-0 right-0 h-1 bg-neutral-200 rounded-full overflow-hidden mx-1">
-                                                <div style={{ width: `${(m.currentHp / m.maxHp) * 100}%` }} className="h-full bg-neutral-900" />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Battle log box */}
-                    <div className="space-y-2 border-t border-line-soft pt-6">
-                        <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">LOG PERTANDINGAN (BATTLE JOURNAL)</span>
-                        <div className="bg-neutral-900 text-neutral-200 p-4 rounded-2xl font-mono text-[9px] h-48 overflow-y-auto border border-neutral-950 shadow-inner flex flex-col gap-1.5 animate-pulse-slow">
-                            {logs.map((log, index) => {
-                                // Formatting simple marks inside terminal-styled log
-                                const isDivider = log.startsWith('⚔️') || log.startsWith('🏆') || log.startsWith('👥');
-                                const isFaint = log.includes('💀');
-                                const isSwap = log.includes('🔄');
-
-                                let colorClass = "text-neutral-300";
-                                if (isDivider) colorClass = "text-white font-extrabold text-[10px] tracking-wide border-b border-neutral-800 pb-1 mt-1 mb-0.5";
-                                else if (isFaint) colorClass = "text-slate-400 font-bold";
-                                else if (isSwap) colorClass = "text-slate-400 italic";
-
-                                return (
-                                    <div key={index} className={colorClass}>
-                                        {log.replace(/\*\*/g, '')}
-                                    </div>
-                                );
-                            })}
-                            <div ref={logEndRef} />
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 3. OVERLAY WINNER MODAL */}
-            {battleState === 'finished' && winner && (
-                <ModalShell onClose={resetBattle} label="Hasil pertandingan" panelClassName="max-w-sm p-5 sm:p-8 text-center space-y-6">
-                        <div className="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                            <span className="text-2xl">🏆</span>
-                        </div>
-                        
-                        <div>
-                            <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase">PERTANDINGAN SELESAI</h3>
-                            <h2 className="text-xl font-black text-indigo-700 mt-1 capitalize leading-snug">
-                                Tim {winner} Menang! 🎉
-                            </h2>
-                            <p className="text-[10px] text-neutral-400 font-bold mt-1.5 leading-relaxed">
-                                Seluruh Pokémon dari tim lawan berhasil dibuat pingsan dalam pertempuran taktis yang sengit.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-2.5">
-                            <button
-                                onClick={startBattle}
-                                className="btn-primary w-full uppercase tracking-wider"
-                            >
-                                Tanding Ulang
-                            </button>
-                            <button
-                                onClick={resetBattle}
-                                className="btn-secondary w-full uppercase tracking-wider"
-                            >
-                                Reset Arena
-                            </button>
-                        </div>
-                </ModalShell>
-            )}
+          </div>
         </div>
-    );
+      )}
+
+      {/* 2. ARENA BERJALAN */}
+      {battleState !== 'idle' && (
+        <div className="space-y-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-line-soft pb-5">
+            <div>
+              <h2 className="text-sm font-black tracking-widest text-neutral-400 uppercase m-0">Arena Tempur Aktif</h2>
+              <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px] text-neutral-500 font-bold">
+                <span>{team1?.name}</span>
+                <span className="text-neutral-300">VS</span>
+                <span>{team2?.name}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setSimulationSpeed((prev) => (prev === 1200 ? 500 : 1200))}
+                className="px-3 py-2 border border-line hover:bg-indigo-50 hover:text-indigo-700 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-700"
+              >
+                Speed: {simulationSpeed === 1200 ? 'Normal (1.2s)' : 'Cepat (0.5s)'}
+              </button>
+
+              {battleState === 'running' && (
+                <button
+                  onClick={pauseBattle}
+                  className="px-4 py-2 bg-canvas hover:bg-indigo-50 border border-line hover:border-indigo-200 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-800"
+                >
+                  Pause
+                </button>
+              )}
+
+              {battleState === 'paused' && (
+                <button
+                  onClick={resumeBattle}
+                  className="btn-primary px-4 py-2 text-[9px] uppercase tracking-wider"
+                >
+                  Resume
+                </button>
+              )}
+
+              <button
+                onClick={resetBattle}
+                className="px-4 py-2 border border-line hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 text-[9px] font-bold uppercase tracking-wider rounded-xl cursor-pointer transition-all text-neutral-400"
+              >
+                Keluar Arena
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-5 sm:gap-6 items-center">
+            <div className="md:col-span-3">
+              <FighterCard pokemon={t1Members[t1ActiveIdx]} side={1} animating={animating1} hit={hit1} />
+            </div>
+
+            <div className="md:col-span-1 text-center py-4 flex flex-col items-center justify-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-700 to-violet-600 border-4 border-white shadow-[0_0_0_1px_rgba(79,70,229,.25)] flex items-center justify-center text-white text-xs font-black tracking-tight z-10">
+                VS
+              </div>
+              <span className="font-mono text-[9px] font-black text-slate-400 uppercase tracking-widest block">Turn {turn}</span>
+            </div>
+
+            <div className="md:col-span-3">
+              <FighterCard pokemon={t2Members[t2ActiveIdx]} side={2} animating={animating2} hit={hit2} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 border-t border-line-soft pt-6">
+            <LineupRow members={t1Members} activeIdx={t1ActiveIdx} label={`LINEUP TIM 1 (${team1?.name ?? ''})`} />
+            <LineupRow members={t2Members} activeIdx={t2ActiveIdx} label={`LINEUP TIM 2 (${team2?.name ?? ''})`} />
+          </div>
+
+          <div className="space-y-2 border-t border-line-soft pt-6">
+            <span className="block text-[8px] font-black tracking-widest text-neutral-400 uppercase">
+              LOG PERTANDINGAN (BATTLE JOURNAL)
+            </span>
+            <div
+              role="log"
+              aria-live="polite"
+              className="bg-neutral-900 text-neutral-200 p-4 rounded-2xl font-mono text-[9px] h-48 overflow-y-auto border border-neutral-950 shadow-inner flex flex-col gap-1.5 animate-pulse-slow"
+            >
+              {logs.map((log, index) => {
+                const isDivider = log.startsWith('⚔️') || log.startsWith('🏆') || log.startsWith('👥');
+                const isFaint = log.includes('💀');
+                const isSwap = log.includes('🔄');
+
+                let colorClass = 'text-neutral-300';
+                if (isDivider) colorClass = 'text-white font-extrabold text-[10px] tracking-wide border-b border-neutral-800 pb-1 mt-1 mb-0.5';
+                else if (isFaint) colorClass = 'text-slate-400 font-bold';
+                else if (isSwap) colorClass = 'text-slate-400 italic';
+
+                return (
+                  <div key={index} className={colorClass}>
+                    {log.replace(/\*\*/g, '')}
+                  </div>
+                );
+              })}
+              <div ref={logEndRef} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MODAL PEMENANG */}
+      {battleState === 'finished' && winner && (
+        <ModalShell onClose={resetBattle} label="Hasil pertandingan" panelClassName="max-w-sm p-5 sm:p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <span className="text-2xl">🏆</span>
+          </div>
+
+          <div>
+            <h3 className="text-[9px] font-black tracking-widest text-neutral-400 uppercase">PERTANDINGAN SELESAI</h3>
+            <h2 className="text-xl font-black text-indigo-700 mt-1 capitalize leading-snug">
+              {winner === 'Seri' ? 'Pertandingan Seri! 🤝' : `${winner} Menang! 🎉`}
+            </h2>
+            <p className="text-[10px] text-neutral-400 font-bold mt-1.5 leading-relaxed">
+              {winner === 'Seri'
+                ? 'Kedua tim kehabisan Pokémon pada turn yang sama.'
+                : 'Seluruh Pokémon dari tim lawan berhasil dibuat pingsan dalam pertempuran taktis yang sengit.'}
+            </p>
+          </div>
+
+          <div className="flex gap-2.5">
+            <button onClick={startBattle} className="btn-primary w-full uppercase tracking-wider">
+              Tanding Ulang
+            </button>
+            <button onClick={resetBattle} className="btn-secondary w-full uppercase tracking-wider">
+              Reset Arena
+            </button>
+          </div>
+        </ModalShell>
+      )}
+    </div>
+  );
 }
+
+BattleSimulator.propTypes = {
+  teams: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+      members: PropTypes.arrayOf(PropTypes.object),
+    }),
+  ).isRequired,
+};

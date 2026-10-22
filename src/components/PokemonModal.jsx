@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import TypeBadge from './TypeBadge';
 import { calculateTypeWeakness } from '../utils/statCalculator';
@@ -286,3 +287,14 @@ export default function PokemonModal({ pokemon, onClose, onOpenDifferentPokemon,
         </ModalShell>
     );
 }
+
+PokemonModal.propTypes = {
+  pokemon: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onOpenDifferentPokemon: PropTypes.func.isRequired,
+  cachedDetails: PropTypes.object,
+  journalLogs: PropTypes.arrayOf(PropTypes.object),
+  onCreateJournal: PropTypes.func.isRequired,
+  onUpdateJournal: PropTypes.func.isRequired,
+  onDeleteJournal: PropTypes.func.isRequired,
+};

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 
 export default function TypeIcon({ type, className = "w-3 h-3" }) {
     const normalizedType = type ? type.toLowerCase() : 'normal';
@@ -139,3 +140,8 @@ export default function TypeIcon({ type, className = "w-3 h-3" }) {
         </svg>
     );
 }
+
+TypeIcon.propTypes = {
+  type: PropTypes.string,
+  className: PropTypes.string,
+};

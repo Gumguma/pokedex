@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 
 export default function Header({ activeTab, setActiveTab, favoritesCount, compareCount, teamsCount, journalCount }) {
     return (
@@ -119,3 +120,12 @@ export default function Header({ activeTab, setActiveTab, favoritesCount, compar
         </header>
     );
 }
+
+Header.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  setActiveTab: PropTypes.func.isRequired,
+  favoritesCount: PropTypes.number.isRequired,
+  compareCount: PropTypes.number.isRequired,
+  teamsCount: PropTypes.number.isRequired,
+  journalCount: PropTypes.number.isRequired,
+};
