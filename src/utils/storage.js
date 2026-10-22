@@ -23,7 +23,6 @@ export const safeSetItem = (key, value) => {
       // Retry setelah cleanup
       try {
         localStorage.setItem(key, value);
-        console.log('✅ LocalStorage berhasil setelah cleanup');
         return true;
       } catch (retryErr) {
         console.error('❌ LocalStorage masih penuh setelah cleanup:', retryErr);

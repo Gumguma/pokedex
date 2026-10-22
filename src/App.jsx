@@ -180,7 +180,6 @@ export default function App() {
     } catch (err) {
       // Jangan set error jika fetch di-abort (user-initiated)
       if (err.name === 'AbortError') {
-        console.log('Fetch dibatalkan (user ganti generation)');
         return;
       }
       

@@ -1,16 +1,84 @@
-# React + Vite
+# Pokédex
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Pokédex interaktif berbahasa Indonesia: jelajahi Pokémon lintas generasi, bandingkan statistik, susun tim, simulasikan pertarungan, catat jurnal, dan uji hafalan lewat kuis.
 
-Currently, two official plugins are available:
+**Live:** https://gumguma.github.io/pokedex/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Fitur
 
-## React Compiler
+- **Jelajah** — grid Pokémon dengan filter tipe, generasi, kategori (legendary/mythical), pencarian, dan pengurutan
+- **Favorit** — tandai Pokémon, tersimpan di perangkat
+- **Bandingkan** — adu statistik dua Pokémon berdampingan
+- **Tim Tempur** — susun beberapa tim, maksimal 6 anggota per tim
+- **Arena Tempur** — simulasi pertarungan memakai statistik dan tabel efektivitas tipe
+- **Jurnal** — catatan per Pokémon dengan timeline
+- **Kuis Bayangan** — tebak nama Pokémon dari siluet, ada skor beruntun dan high score
+- Suara cry Pokémon (opsional, dengan guard autoplay)
+- Tema indigo, mobile-first, tanpa dark mode
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- React 19 + Vite 8
+- Tailwind CSS 4 (lewat `@tailwindcss/vite`, token di `src/index.css`)
+- Tanpa router — navigasi tab memakai state
+- Tanpa backend — data dari [PokéAPI](https://pokeapi.co/), sprite dan cry dari repo `PokeAPI/sprites` & `PokeAPI/cries`
+- Font Plus Jakarta Sans dari Google Fonts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Menjalankan
+
+```bash
+npm install
+npm run dev        # server lokal (Vite)
+npm run build      # build produksi ke dist/
+npm run preview    # cek hasil build
+npm run lint       # eslint
+npm test           # unit test (node --test)
+npm run deploy     # build + push dist/ ke branch gh-pages
+```
+
+Butuh Node 20+ (dikembangkan di Node 22).
+
+## Struktur
+
+```
+src/
+  App.jsx                  # state global + tab + fetch PokéAPI
+  components/              # 15 komponen UI (card, modal, battle, quiz, journal, tim)
+  hooks/                   # useFavorites, useTeams, useJournal, useDebounce, useModalBehavior
+  utils/                   # storage (localStorage aman), statCalculator, typeColor, audioHelper
+  constants/pokemonData.js # TYPE_DETAILS (18 tipe + legendary/mythical) & label generasi
+  index.css                # token Tailwind 4 (@theme)
+```
+
+## Penyimpanan data
+
+Semua data pengguna ada di `localStorage`, tidak ada yang dikirim ke server:
+
+| Key | Isi |
+| --- | --- |
+| `pokedex_favs` | daftar ID favorit |
+| `pokedex_teams` | daftar tim tempur |
+| `pokedex_journal` | catatan jurnal |
+
+`src/utils/storage.js` menangani kuota penuh: kalau `setItem` gagal, isi dibersihkan lalu dicoba ulang, dan UI menampilkan toast gagal simpan.
+
+## Test
+
+```bash
+npm test
+```
+
+Memakai test runner bawaan Node (`node --test`). Saat ini menguji helper kontras warna badge (`src/utils/typeColor.js`).
+
+## Deploy
+
+```bash
+npm run deploy
+```
+
+`predeploy` menjalankan build, lalu `gh-pages` mem-push `dist/` ke branch `gh-pages`. Situs GitHub Pages menyajikan branch itu di https://gumguma.github.io/pokedex/ — perlu beberapa menit sampai cache ikut diperbarui.
+
+## Catatan
+
+- Aplikasi butuh internet: data Pokémon diambil langsung dari PokéAPI saat runtime.
+- `base: './'` di `vite.config.js` supaya asset tetap benar saat disajikan dari sub-path GitHub Pages.
